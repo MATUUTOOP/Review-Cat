@@ -7,7 +7,7 @@ This is a curated set of prompt patterns used by ReviewCat.
 > See [PLAN.md](../PLAN.md) §4.3 for integration details.
 >
 > **MCP config:** All agent invocations include `--mcp-config dev/mcp/github-mcp.json`
-> which configures the GitHub MCP Server (native binary, no Docker).
+> which configures the GitHub MCP Server (remote MCP preferred; or native `github-mcp-server stdio` on host / container-bundled).
 > See [PLAN.md](../PLAN.md) §3.1 for deployment options.
 
 The intent is consistency and auditable prompt engineering.

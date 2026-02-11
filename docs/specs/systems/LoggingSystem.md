@@ -20,7 +20,7 @@ Both share a common log format and never log secrets or tokens.
 3. Must support structured format: `[YYYY-MM-DD HH:MM:SS] [LEVEL] [component] message`.
 4. Must never log tokens, PATs, passwords, or sensitive environment variables.
 5. Must support runtime log level selection (CLI flag or config).
-6. Must provide a Dear ImGui log sink for the Log Viewer panel (Phase 6).
+6. Must provide a UI log sink for the Log Viewer panel (Phase 6) using the project’s custom ToolUI text renderer (no Dear ImGui dependency).
 7. Must be lightweight — no blocking I/O on the hot path.
 
 ## Interfaces

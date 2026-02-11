@@ -74,8 +74,12 @@ Development goals:
 - Requiring external cloud services beyond GitHub (everything runs locally).
 - Shipping without a UI (a lightweight native window is part of the product).
 
-The UI is a lightweight **Dear ImGui** window (SDL2/GLFW backend) providing
-settings, stats, and command-and-control — not a full GUI-first product.
+The UI is a lightweight native window built with **SDL3** (window/input) and a
+**custom ToolUI** (draw primitives + bitmap glyph font) providing settings,
+stats, and command-and-control — not a full GUI-first product.
+
+For dev harness operations, an optional **swarm visualizer** mode can render a
+live task graph driven by agent-bus telemetry.
 
 ## Target users
 
@@ -258,7 +262,9 @@ agents to interact with GitHub:
 - **Toolsets:** `issues`, `pull_requests`, `repos`, `git`
 - **Authentication:** `GITHUB_PERSONAL_ACCESS_TOKEN` env var
 - **Launch:** Native binary (`github-mcp-server stdio`) or remote server
-  (`https://api.githubcopilot.com/mcp/`) — no Docker required
+  (`https://api.githubcopilot.com/mcp/`). In the Docker-first dev harness model,
+  agents run inside worker containers, while the MCP server can be remote (preferred)
+  or a native stdio binary on the host / bundled in the container image.
 - **Agent integration:** `copilot -p "..." --mcp-config github-mcp.json`
 
 This replaces raw `gh` CLI for development agents. The `gh` CLI remains as
@@ -488,8 +494,9 @@ scripts**. Copilot CLI + GitHub MCP Server are the primary external deps.
 
 ### Phase 6: End-user UI
 
-- Dear ImGui window (SDL2/GLFW): dashboard, agent status panel, settings,
-  stats, audit log, log viewer, daemon controls.
+- SDL3 + custom ToolUI surfaces: dashboard, agent status panel, settings, stats,
+  audit log, log viewer, daemon controls (optionally including a swarm visualizer view).
+  Include a top/bottom status bar and explicit UI layer/z-index handling.
 
 ### Phase 7: Polish and distribution
 
@@ -548,6 +555,6 @@ Server are unavailable.
 
 - Package includes:
   - Single static binary (`reviewcat`) — no runtime dependencies
-  - Dear ImGui UI built into the binary (`reviewcat ui`)
+  - SDL3 + custom ToolUI built into the binary (`reviewcat ui`)
   - Default config template (`reviewcat.toml`)
   - Bootstrap scripts for self-improvement setup

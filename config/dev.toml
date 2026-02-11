@@ -1,0 +1,112 @@
+# ReviewCat dev harness configuration (MVP)
+#
+# - Planning-only scaffold: key names may evolve.
+# - No secrets in TOML. Tokens stay in environment variables.
+
+[director]
+# Heartbeat loop interval.
+interval_seconds = 60
+
+# Maximum concurrent worker containers.
+max_workers = 3
+
+# Maximum end-to-end retries per task before escalation.
+max_retries = 3
+
+[timeouts]
+# Worker must send a heartbeat within this TTL or Director considers it disconnected.
+worker_heartbeat_ttl_seconds = 90
+
+# Hard timeout for a worker task cycle (kill + retry policy applies).
+worker_watchdog_seconds = 3600
+
+# If an issue stays claimed without progress beyond this threshold, it may be reclaimed.
+issue_claim_stale_seconds = 21600
+
+[retry]
+# exponential | linear
+backoff_mode = "exponential"
+backoff_initial_seconds = 1
+backoff_max_seconds = 30
+
+[containers]
+# Shared image tag used by Director + all workers.
+image = "reviewcat-dev:main"
+
+# Worktree bind-mount target path inside worker containers.
+workdir = "/workspace"
+
+# Stop/remove idle workers when they have nothing to do.
+scale_to_zero_idle_seconds = 300
+
+[agent_bus]
+# MVP: Director acts as the rendezvous/broker.
+# Future: p2p_gossip / DHT-style mesh (multi-host).
+mode = "director_broker" # director_broker | p2p_gossip
+
+# Bind address/port for worker connections.
+# For Docker-first MVP, this should be reachable on the Docker network.
+listen_addr = "0.0.0.0"
+listen_port = 8731
+
+# Security posture.
+# - docker_network_only: acceptable for MVP inside a private Docker network.
+# - mTLS: required before enabling multi-host/LAN mode.
+security = "docker_network_only" # docker_network_only | mTLS
+
+[memory]
+# MEMORY.md is a *tracked, shared focus view* derived from higher-signal context.
+# Durable shared memory is stored as versioned engrams under /memory/.
+file_path = "MEMORY.md"
+
+# Director-authoritative catalog (LUT) stored in git.
+catalog_path = "memory/catalog.json"
+
+# In-memory agent-bus event buffer budget (compaction runs on oldest events first).
+buffer_max_bytes = 20000
+compact_when_over_bytes = 20000
+
+# Hard caps to prevent repo/memory bloat.
+# These are enforcement knobs for the Director (policy may evolve).
+engram_max_bytes = 12000
+
+# Tier budgets (bytes/files). Eviction policy is oldest-first within tier; ST is evicted before LT.
+st_max_total_bytes = 400000
+st_max_files = 64
+lt_max_total_bytes = 2000000
+lt_max_files = 512
+
+# Shared focus buffer (tracked). This is the “what matters right now” view.
+memory_md_max_bytes = 16000
+memory_md_max_items = 48
+
+# How often the Director refreshes the tracked focus view.
+# on_merge: update after memory-related PRs/merges
+# periodic: update every N heartbeats
+# hybrid: update on_merge and also periodically
+memory_md_update_cadence = "hybrid" # on_merge | periodic | hybrid
+
+# Used when cadence is periodic/hybrid.
+memory_md_update_every_n_heartbeats = 10
+
+# Engram store (git-tracked)
+engram_root_dir = "memory"
+engram_st_dir = "memory/st"
+engram_lt_dir = "memory/lt"
+
+# Director publishes catalog/snapshots
+# on_merge | periodic | hybrid
+update_cadence = "on_merge"
+
+[rate_limits.github]
+# These are swarm-level pacing knobs to avoid flooding GitHub/MCP/gh.
+# Implementation should honor Retry-After when available and apply jittered backoff on 429/abuse signals.
+max_concurrent_requests = 2
+min_seconds_between_writes = 2
+cooldown_on_rate_limit_seconds = 60
+
+[rate_limits.model]
+# These are swarm-level pacing knobs for LLM/Copilot calls.
+max_concurrent_requests = 1
+min_seconds_between_requests = 1
+cooldown_on_error_seconds = 10

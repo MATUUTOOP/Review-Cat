@@ -8,6 +8,10 @@
 > This file provides the human-readable overview; `dev/plans/prd.json` and
 > GitHub Issues labeled `agent-task` are the machine-readable sources.
 
+**TODO.md lifecycle (governance):** At the start of each release cycle, archive
+the previous TODO into `/archive/` (e.g., `archive/TODO-2026-02-11.md`) and keep
+this file focused on the current release.
+
 ---
 
 ## Phase 0: Bootstrap & Dev Harness (PRIORITY — Get Director Running)
@@ -24,9 +28,16 @@ Run `dev/scripts/setup.sh` to automate these, or do them manually:
 - [ ] Install **gh CLI**: `sudo apt install gh` → `gh --version`
 - [ ] Authenticate gh CLI: `gh auth login` (select HTTPS, `repo` scope, confirm with browser)
 - [ ] Install **jq**: `sudo apt install jq` → `jq --version`
+- [ ] Install/verify **Docker** (dev harness runtime; WSL2-friendly):
+  - `docker --version`
+  - `docker compose version`
+  - Verify non-root usage (or document `sudo docker ...` if required)
 - [ ] Verify **cmake**: `cmake --version` (already installed)
 - [ ] Verify **g++**: `g++ --version` (already installed)
-- [ ] Install **github-mcp-server** native binary:
+- [ ] Install **github-mcp-server** (choose one):
+  - **Remote MCP** (preferred for MVP): `https://api.githubcopilot.com/mcp/`
+  - **Native binary** on host (fallback/offline)
+  - **Bundled in dev harness container image** (optional; avoids host installs)
   ```bash
   # Option A: Download pre-built binary from GitHub Releases
   GH_MCP_VERSION="v0.30.3"  # check for latest
@@ -43,6 +54,13 @@ Run `dev/scripts/setup.sh` to automate these, or do them manually:
 - [ ] Export PAT: `export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_...` (add to `~/.bashrc`)
 - [ ] Verify Copilot CLI works: `copilot -p "Say hello and confirm you can see this prompt"`
 - [ ] Verify gh works: `gh issue list --repo p3nGu1nZz/Review-Cat`
+
+- [ ] Create `/archive/` directory for TODO history (see TODO.md lifecycle note)
+
+- [ ] Create/maintain canonical dev harness config: `config/dev.toml`
+  - All timings (intervals, watchdogs, TTLs, retry/backoff) live here
+  - Agent-bus ports/security live here
+  - No secrets in TOML (tokens remain env vars)
 
 ### 0.2 — GitHub MCP Server Configuration (gives agents GitHub superpowers)
 
@@ -61,9 +79,10 @@ Run `dev/scripts/setup.sh` to automate these, or do them manually:
     }
   }
   ```
-  > **Note:** The native `github-mcp-server` binary runs as a stdio process —
-  > no Docker required. The binary is lightweight (~30MB) and starts instantly.
-  > Alternatively, use the remote server: `{"type": "http", "url": "https://api.githubcopilot.com/mcp/"}`
+  > **Note:** For the MVP, prefer the **remote MCP server** (`{"type": "http", "url": "https://api.githubcopilot.com/mcp/"}`)
+  > to minimize host/container setup complexity. If you run the native stdio MCP server,
+  > it can live on the host OR inside the dev harness container image — either way, agents
+  > only need a working MCP config.
 - [ ] Smoke-test MCP read: `copilot -p "List open issues on p3nGu1nZz/Review-Cat using GitHub MCP tools" --mcp-config dev/mcp/github-mcp.json`
 - [ ] Smoke-test MCP write: `copilot -p "Create a GitHub Issue titled '[test] MCP smoke test' with body 'Delete me' on p3nGu1nZz/Review-Cat" --mcp-config dev/mcp/github-mcp.json`
 - [ ] Close/delete the smoke-test issue
@@ -179,9 +198,14 @@ With them, you have a self-driving development daemon.
   - [ ] `list` — `git worktree list --porcelain`
   - [ ] `count` — count active worktrees
   - [ ] Validate MAX_WORKERS limit before creating
+  - [ ] Document how worktrees map to worker containers:
+    - One **shared** dev harness Docker image tag
+    - One **container per worker**
+    - One **worktree per container**, bind-mounted as the container workspace
 - [ ] Write `dev/harness/run-cycle.sh` — Single task cycle (the "Claude Code session"):
   - [ ] Accept args: `<issue_number> <branch_name>`
   - [ ] `cd` into the worktree for this branch
+  - [ ] Docker-first execution (recommended): run `run-cycle.sh` inside a worker container with the worktree mounted at a fixed path (e.g., `/workspace`)
   - [ ] Create audit dir: `dev/audits/$(date +%Y%m%d-%H%M%S)-${issue}/`
   - [ ] Invoke coder agent with issue context + MCP + file write:
     ```bash
@@ -220,6 +244,7 @@ With them, you have a self-driving development daemon.
 - [ ] Write `dev/harness/monitor-workers.sh` — Worker completion check:
   - [ ] List active worktrees
   - [ ] For each: check if agent process is still running
+  - [ ] Track worker container state + heartbeat TTL (via agent bus + docker state)
   - [ ] For completed workers: validate build/test passed
   - [ ] For passing workers: merge PR via MCP, close issue, teardown worktree
   - [ ] For failing workers: increment retry counter, re-dispatch or label `agent-blocked`
@@ -231,7 +256,7 @@ With them, you have a self-driving development daemon.
 ### 0.7 — Director Daemon (the heartbeat loop — Agent 0 comes alive)
 
 - [ ] Write `dev/harness/director.sh` — The main daemon:
-  - [ ] Config variables at top: `INTERVAL=60`, `MAX_WORKERS=3`, `MAX_RETRIES=3`, `REPO=p3nGu1nZz/Review-Cat`
+  - [ ] Load config from `config/dev.toml` (intervals, max workers, watchdogs, agent-bus ports)
   - [ ] PID file: write `$$` to `dev/harness/director.pid`, check on startup
   - [ ] Trap `SIGTERM`/`SIGINT` for graceful shutdown (teardown all worktrees)
   - [ ] **Main loop** (`while true`):
@@ -242,12 +267,17 @@ With them, you have a self-driving development daemon.
        - Claim issue: add `agent-claimed` label, remove `agent-task`
        - Create branch: `agent/${ISSUE}-$(date +%s)`
        - Create worktree: `dev/harness/worktree.sh create $BRANCH`
-       - Dispatch: `dev/harness/run-cycle.sh $ISSUE $BRANCH &`
+       - Dispatch: start a worker **container** (shared image tag) that runs `dev/harness/run-cycle.sh $ISSUE $BRANCH`
+       - Register worker in swarm state (container id, worktree path, task id)
     5. Monitor completed workers: `dev/harness/monitor-workers.sh`
     6. If no issues and no PDR tasks and all workers idle:
        - Run `dev/harness/review-self.sh` (creates new issues → feeds the loop)
     7. `sleep $INTERVAL`
   - [ ] Log each heartbeat iteration to `dev/audits/director.log`
+
+  > **Note (memory model):** Durable shared memory is **git-tracked** as engram JSON files under `/memory/st/<batch_id>/` (short-term) and `/memory/lt/<batch_id>/` (long-term), with an authoritative Director-maintained LUT at `memory/catalog.json`. The Director enforces **bounded policies** (max ST/LT files/bytes, max engram size).
+  >
+  > `MEMORY.md` is a **tracked**, Director-managed **shared “focus” view** derived from recent high-signal ST engrams (and optionally the latest event window). It is regenerated/updated by the Director at a controlled cadence, kept small via an LRU/size cap, and is used to inject “what matters right now” context into prompts. Durable shared memory still lives in the engram files + catalog; `MEMORY.md` is intentionally regeneratable.
 
 ### 0.8 — Setup Script (install system prereqs — run once per machine)
 
@@ -402,7 +432,11 @@ system equivalent to running Claude Code in an autonomous loop.
 
 ## Phase 6: End-User UI (C++)
 
-- [ ] Set up Dear ImGui with SDL2 or GLFW backend in `app/src/ui/`
+- [ ] Set up SDL3 window/input + custom ToolUI (primitives + bitmap font) in `app/src/ui/`
+- [ ] Add top status bar (single-line hotkey helper text)
+- [ ] Add bottom status bar (focused panel/view state + status info)
+- [ ] Define UI layering/z-index model (world viewport + overlay panels + modals)
+- [ ] (Optional) Swarm visualizer UI surface (3D task graph) driven by agent-bus telemetry
 - [ ] Dashboard panel — active review status, recent findings, daemon health
 - [ ] **Agent Status panel** — live view of:
   - [ ] Active agents and their current tasks
@@ -413,7 +447,7 @@ system equivalent to running Claude Code in an autonomous loop.
 - [ ] Settings panel — load/save `reviewcat.toml`
 - [ ] Stats panel — review counts, severity breakdown, persona activity
 - [ ] Audit Log panel — browse past runs, view findings
-- [ ] **Log Viewer panel** — live scrolling log with level filtering (spdlog sink)
+- [ ] **Log Viewer panel** — live scrolling log with level filtering (ToolUI text rendering)
 - [ ] Controls panel — start/stop daemon, trigger manual review
 - [ ] `reviewcat ui` subcommand
 
@@ -442,7 +476,7 @@ system equivalent to running Claude Code in an autonomous loop.
   - [ ] C++ app: integrate spdlog (console + rotating file sinks)
   - [ ] C++ app: log file at `~/.reviewcat/reviewcat.log`
   - [ ] C++ app: `--log-level` CLI flag (trace/debug/info/warn/error)
-  - [ ] C++ app: spdlog ImGui sink for Log Viewer panel
+  - [ ] C++ app: UI sink for Log Viewer panel (no Dear ImGui dependency)
 - [ ] **Test infrastructure:**
   - [ ] `scripts/test.sh` runs Catch2 binary + reports results
   - [ ] Record/replay fixtures for Copilot CLI responses
@@ -459,8 +493,8 @@ system equivalent to running Claude Code in an autonomous loop.
 - Phase 0 is the **highest priority** — get the Director running so it can autonomously implement Phases 1+.
 - Phase 1 enables the **self-improvement loop** — ReviewCat reviews and fixes itself.
 - All agent work is tracked via **GitHub Issues and PRs** on `p3nGu1nZz/Review-Cat`.
-- Agents run in parallel via **git worktrees** in the parent directory.
-- The `dev/` agents use **GitHub MCP Server** (native binary, no Docker) for issue/PR operations.
+- Agents run in parallel via **worker containers** (shared image tag) + **git worktrees** (one worktree mounted per worker).
+- The `dev/` agents use **GitHub MCP Server** via either **remote MCP** (preferred) or a **native stdio binary** (host or container-bundled).
 - Setup script (`dev/scripts/setup.sh`) installs system prereqs.
 - Bootstrap script (`dev/scripts/bootstrap.sh`) initializes the project.
 - Mark items `[x]` as they are completed; primary tracking is via GitHub Issues.

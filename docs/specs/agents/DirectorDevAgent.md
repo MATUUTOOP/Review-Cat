@@ -43,4 +43,4 @@ prompt files, invoked via `copilot -p @dev/agents/<role>.md "..."`.
 - Scope control: DirectorDev must refuse to expand scope beyond spec unless explicitly authorized.
 - Safety: no network actions without opt-in.
 - Logging: every heartbeat iteration logged via `dev/harness/log.sh`.
-- MCP Server runs as native binary (`github-mcp-server stdio`) — no Docker.
+- MCP Server is configured via either remote MCP or a native `github-mcp-server stdio` binary (host or container-bundled).

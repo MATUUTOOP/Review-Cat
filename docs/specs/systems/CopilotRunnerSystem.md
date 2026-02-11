@@ -63,5 +63,5 @@ Ledger files:
 - Never print tokens.
 - Timeouts for long-running calls.
 - MCP config path must not contain secrets (env vars only).
-- MCP Server is a native binary (`github-mcp-server stdio`) — no Docker.
+- MCP Server is configured via either remote MCP or a native `github-mcp-server stdio` binary (host or container-bundled).
 - All invocations are logged via LoggingSystem (spdlog in C++, log.sh in bash).

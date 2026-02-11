@@ -16,7 +16,7 @@ sequential.
   - [ ] `dev/agents/`, `dev/harness/`, `dev/plans/`, `dev/prompts/`, `dev/scripts/`, `dev/audits/`
 - [ ] Write root `CMakeLists.txt` (delegates to `app/CMakeLists.txt`).
 - [ ] Set up dependency management (vcpkg or git submodules) for:
-  - [ ] `nlohmann/json`, `toml++`, `Catch2`, `libgit2`, `imgui`, `SDL2/GLFW`, `spdlog`
+  - [ ] `nlohmann/json`, `toml++`, `Catch2`, `libgit2`, `SDL3`, `spdlog`
 - [ ] Write `scripts/build.sh` — CMake configure + build.
 - [ ] Write `scripts/test.sh` — run Catch2 test binary.
 - [ ] Write `scripts/clean.sh` — remove build artifacts.
@@ -105,7 +105,10 @@ sequential.
 
 ## Phase 6: End-User UI (C++)
 
-- [ ] Set up Dear ImGui with SDL2 or GLFW backend in `app/src/ui/`.
+- [ ] Set up SDL3 window/input + custom ToolUI (primitives + bitmap font) in `app/src/ui/`.
+- [ ] Top status bar: hotkey helper text (F1–F12)
+- [ ] Bottom status bar: focused panel/view state + status info
+- [ ] UI layering/z-index model: world viewport + overlay panels + modals
 - [ ] Dashboard panel — active review status, recent findings, daemon health.
 - [ ] **Agent Status panel** — live agent/worktree/heartbeat status.
 - [ ] Settings panel — load/save `reviewcat.toml`:

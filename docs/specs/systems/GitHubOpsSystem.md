@@ -22,6 +22,7 @@ This system serves two distinct contexts:
 6. Must never perform GitHub mutations unless explicitly enabled.
 7. Must support GitHub MCP Server as primary integration.
 8. Must fall back to `gh` CLI if MCP Server is unavailable.
+9. Must respect swarm-level backpressure and rate-limit policy (see `RequestBudgetSystem`).
 
 ## Interfaces
 
@@ -63,15 +64,19 @@ This system serves two distinct contexts:
 
 - PR from fork.
 - Large PR diff.
-- Rate limiting from GitHub API.
+- Rate limiting from GitHub API (including burst/abuse protection).
 - GitHub MCP Server timeout.
 - Token expired or insufficient permissions.
+
+## Related specs
+
+- `docs/specs/systems/RequestBudgetSystem.md` — global pacing/backpressure for GitHub and model calls.
 
 ## Non-functional constraints
 
 - No token storage in code; use environment variables.
 - Redact sensitive content before posting.
 - `GITHUB_PERSONAL_ACCESS_TOKEN` for MCP; `gh auth` for CLI fallback.
-- MCP Server runs as native `github-mcp-server stdio` binary (no Docker).
+- MCP Server is configured via either remote MCP or a native `github-mcp-server stdio` binary (host or container-bundled).
 - Three deployment options: remote server, pre-built binary, build from source.
   See PLAN.md §3.1.

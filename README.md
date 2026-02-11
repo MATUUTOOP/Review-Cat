@@ -7,6 +7,22 @@ automation for any Git repository.
 ReviewCat is also **self-building**: a development harness powered by Copilot
 CLI autonomously develops, tests, and iterates on its own codebase.
 
+The workflow is intentionally cyclic:
+
+> **bootstrap → dev → app → dev → app → …**
+
+## Project Status (Docs-first → Code)
+
+This repository is currently **planning/specs-first**: the docs and specs are the
+source of truth, and the implementation is being bootstrapped in Phase 0.
+
+- The planned scaffold (`app/`, `dev/`, `scripts/`, `.github/`) is **not fully
+	present yet**.
+- The next milestone is to create the minimal repo scaffold + a “green”
+	build/test gate so autonomous cycles can run end-to-end.
+
+Tracking issue: **#16 — _Bootstrap Repo Scaffold + Green Build/Test Gate_**.
+
 ## Key Features
 
 - **Persona-based review** — Security, performance, architecture, testing, and docs agents.
@@ -14,7 +30,7 @@ CLI autonomously develops, tests, and iterates on its own codebase.
 - **Audit trail** — Every Copilot CLI call recorded in a prompt ledger.
 - **GitHub integration** — PR comments, issues, and patches via GitHub MCP Server.
 - **Daemon mode** — Continuous monitoring with configurable intervals.
-- **Native UI** — Dear ImGui window for settings, stats, agent status, and control.
+- **Native UI** — SDL3-based UI surfaces (settings, stats, control) and an optional 3D swarm visualizer.
 - **Self-building** — Director daemon (Agent 0) that orchestrates development.
 
 ## Tech Stack
@@ -24,9 +40,9 @@ CLI autonomously develops, tests, and iterates on its own codebase.
 | Language | C++17/20 |
 | Build system | CMake |
 | Dev harness | Bash shell scripts |
-| UI | Dear ImGui (SDL2/GLFW) |
+| UI | SDL3 (window/input) + custom ToolUI (primitives + bitmap glyph font + hex colors) + optional 3D swarm visualizer |
 | Copilot integration | `copilot -p` subprocess |
-| GitHub integration | GitHub MCP Server (native binary, no Docker) |
+| GitHub integration | GitHub MCP Server (remote MCP recommended; native binary or containerized for dev harness) |
 | JSON | nlohmann/json |
 | Config | TOML (toml++) |
 | Testing | Catch2 |
@@ -35,6 +51,8 @@ CLI autonomously develops, tests, and iterates on its own codebase.
 
 ## Repository Structure
 
+**Target structure (planned):**
+
 ```
 Review-Cat/
 ├── app/                    # The product (C++ binary)
@@ -42,7 +60,7 @@ Review-Cat/
 │   │   ├── core/           # Core library
 │   │   ├── cli/            # CLI frontend
 │   │   ├── daemon/         # Daemon / watch mode
-│   │   ├── ui/             # Dear ImGui UI window
+│   │   ├── ui/             # SDL3 + custom ToolUI surfaces (and optional 3D visualizer client)
 │   │   └── copilot/        # Copilot CLI subprocess bridge
 │   ├── include/            # Public headers
 │   ├── tests/              # Catch2 test suite
@@ -66,14 +84,23 @@ Review-Cat/
 │   └── PROMPT_COOKBOOK.md
 │
 ├── scripts/                # Top-level build/test/clean scripts
+├── config/                 # Dev harness config (e.g., config/dev.toml)
 ├── PLAN.md                 # Comprehensive project plan
 └── TODO.md                 # Actionable task list
 ```
 
-## Quick Start
+**Current structure (today):** docs/specs + planning files + `config/dev.toml`.
+See [TODO.md](TODO.md) Phase 0 and Issue #16 for the bootstrapping path.
+
+## Quick Start (after Phase 0 scaffold exists)
+
+> Note: the commands below assume Phase 0 scaffolding has been implemented.
+> If you’re looking for what to do right now, start with [TODO.md](TODO.md)
+> Phase 0 and Issue #16.
 
 ```bash
 # Prerequisites: CMake, C++17 compiler, Copilot CLI, gh CLI
+# Dev harness prereq (recommended/required for autonomous loop): Docker (WSL2-friendly)
 
 # Clone
 git clone https://github.com/<owner>/Review-Cat.git
@@ -103,7 +130,19 @@ cd Review-Cat
 
 ## Development (Self-Building)
 
-The development harness runs autonomously via the Director daemon:
+The **dev harness** (once implemented) assumes a Docker-capable environment
+(Linux, or Windows + WSL2 + Docker Desktop integration): one shared image tag,
+many worker containers, one git worktree mounted per worker.
+
+The Director’s scheduling, timeouts, worker telemetry, and agent-bus networking are configured via `config/dev.toml`.
+
+Project memory is shared in two layers (see `AGENT.md` and Issue #13):
+
+- **Durable engrams** committed under `/memory/` (with `memory/catalog.json` as the authoritative LUT and engrams stored in timestamped batches)
+- A **shared, bounded focus view** (`MEMORY.md`, tracked) maintained by the Director and derived from recent high-signal ST/LT context
+
+The development harness runs autonomously via the Director daemon (once the
+Phase 0 scaffold + scripts exist):
 
 ```bash
 # Install system prereqs
@@ -125,6 +164,7 @@ validates via build + test, and commits. See [PLAN.md](PLAN.md) §5 for details.
 |---------|---------|
 | [PLAN.md](PLAN.md) | Comprehensive project plan (golden source of truth) |
 | [TODO.md](TODO.md) | Actionable task list by phase |
+| [AGENT.md](AGENT.md) | Agent system overview: roles, guardrails, agent bus, memory protocol |
 | [Design Doc](docs/COPILOT_CLI_CHALLENGE_DESIGN.md) | Architecture, UX, integration design |
 | [Director Workflow](docs/DIRECTOR_DEV_WORKFLOW.md) | DirectorDev recursive development spec |
 | [Implementation Checklist](docs/IMPLEMENTATION_CHECKLIST.md) | Step-by-step checklist |

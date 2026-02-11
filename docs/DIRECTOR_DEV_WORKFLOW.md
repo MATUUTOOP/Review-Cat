@@ -5,6 +5,19 @@ using GitHub Copilot CLI agents, the GitHub MCP Server, parallel git worktrees,
 and a Director daemon (Agent 0) that orchestrates the circular self-improvement
 loop.
 
+At the project level, ReviewCat evolves in a deliberate loop:
+
+> **bootstrap → dev → app → dev → app → …**
+
+The dev harness improves the repo; the app grows features; and each informs the
+other continuously.
+
+> **Directive (MVP worker execution model):** The dev harness is Docker-first.
+> Use **one shared Docker image tag** for all workers, run **one worker
+> container per task**, and bind-mount **one git worktree per worker** into the
+> container as `/workspace`. Prefer **scale-to-zero** (stop/remove idle worker
+> containers) to keep the system cheap when idle.
+
 > **See also:** [PLAN.md](../PLAN.md) §5 for heartbeat architecture,
 > [TODO.md](../TODO.md) Phase 0–1 for implementation tasks, and
 > [COPILOT_CLI_CHALLENGE_DESIGN.md](COPILOT_CLI_CHALLENGE_DESIGN.md) for full
@@ -87,14 +100,21 @@ See [PLAN.md](../PLAN.md) §5 for the full heartbeat loop pseudocode.
    `agent-claimed` label via GitHub MCP.
 5. **Dispatch workers** — For each claimed issue:
    - Create worktree via `dev/harness/worktree.sh create`.
-   - Spawn `dev/harness/run-cycle.sh <issue> <branch>` in background.
+  - Start a worker container that executes `dev/harness/run-cycle.sh <issue> <branch>`
+    with the worktree bind-mounted as the container workspace.
 6. **Monitor workers** — Via `dev/harness/monitor-workers.sh`:
    - Check completed worktrees.
+  - Ingest worker heartbeats/status from the agent bus (real-time state).
+  - Correlate with Docker container state (running/exited/exit code).
    - Validate build/test in completed worktrees.
    - Agent creates PR via GitHub MCP.
    - Code-review agent reviews PR.
    - On pass: merge PR, close issue, teardown worktree.
    - On fail: retry (max 3), label `agent-blocked`.
+
+Real-time worker state is also emitted onto the agent bus. That telemetry is
+intended to power an optional **swarm visualizer** client (SDL3-based) that can
+render a live task graph and provide operator controls (start/stop/pause).
 7. **Self-review** — When idle (no issues, no PRD tasks):
    - Run `dev/harness/review-self.sh`.
    - Create new GitHub Issues for critical/high findings.
@@ -110,11 +130,22 @@ See [PLAN.md](../PLAN.md) §5 for the full heartbeat loop pseudocode.
    - Docs: update documentation.
    - Security: review for vulnerabilities.
    - Code-review: review the diff.
-4. **Validate** — `./scripts/build.sh && ./scripts/test.sh`.
-5. **Create PR** — Via GitHub MCP with `Closes #<issue>`.
-6. **Record audit** — Bundle all artifacts.
+4. **Sync context** — Before final validation/PR readiness, bring the worker branch up to date with `main` (Director policy):
+  - this pulls in updated specs/protocols
+  - this pulls in newly merged engrams under `/memory/` (durable shared memory)
+5. **Validate** — `./scripts/build.sh && ./scripts/test.sh`.
+6. **Create PR** — Via GitHub MCP with `Closes #<issue>`.
+7. **Record audit** — Bundle all artifacts.
+
+If the swarm is over memory budget, the Director may also schedule a memory-maintenance task:
+
+- compact older agent-bus event slices into structured engrams
+- propose new `/memory/...` engram files via PR (memory agent)
 
 ## Parallel Execution via Worktrees
+
+> In the Docker-first harness, parallelism is **worker containers + worktrees**:
+> each worker container runs one task against its own isolated worktree.
 
 Multiple agents work simultaneously in isolated git worktrees:
 
@@ -127,8 +158,10 @@ Multiple agents work simultaneously in isolated git worktrees:
 ```
 
 - Each worktree has its own branch, build directory, and test artifacts.
+- Each worker has its own container lifecycle and environment variables.
 - Director manages up to `MAX_WORKERS` concurrent worktrees.
-- Communication between agents is via GitHub Issue/PR comments, not files.
+- Operational coordination between agents is primarily via GitHub Issue/PR comments.
+- Shared context is distributed via `/memory/**` engrams, the Director LUT at `memory/catalog.json`, and the tracked `MEMORY.md` focus view.
 - Worktrees are torn down after PRs are merged.
 
 ## Inter-Agent Communication via GitHub

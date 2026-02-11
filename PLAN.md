@@ -4,6 +4,17 @@
 > specs under `docs/specs/`, defines what ReviewCat is, how it is built, and how
 > it operates at runtime. All implementation must trace back to these docs.
 
+## Status (repo reality check)
+
+This repo is currently **docs/specs-first**.
+
+- The *target* structure described below (`app/`, `dev/`, `scripts/`, `.github/`) is
+  the intended end state, but the scaffold is not fully present yet.
+- Phase 0’s first milestone is to create the minimal scaffold + a “green”
+  build/test gate so autonomous cycles can run end-to-end.
+
+Tracking issue: **#16 — _Bootstrap Repo Scaffold + Green Build/Test Gate_**.
+
 ## 1. Vision
 
 ReviewCat is an **autonomous, self-improving code review and development daemon**
@@ -15,12 +26,18 @@ that:
 3. **Implements** fixes for review findings via coding agents that create PRs.
 4. **Self-improves** by running its own review pipeline on itself, creating
    issues and PRs to iteratively enhance its own codebase.
-5. **Provides** a local UI window for settings, stats, and command-and-control.
+5. **Provides** UI surfaces for settings, stats, and command-and-control (including an optional swarm visualizer).
 
 The workflow is **circular and indefinite**: review → issues → coding agent
-fixes → PR → merge → review again. This loop runs continuously while the
-daemon is active, enabling ReviewCat to bootstrap from minimal hardcoded logic
-and progressively develop itself into a full product.
+fixes → PR → merge → review again.
+
+At the meta level (how the repo evolves), the loop is:
+
+> **bootstrap → dev → app → dev → app → …**
+
+This runs continuously while the daemon is active, enabling ReviewCat to
+bootstrap from minimal hardcoded logic and progressively develop itself into a
+full product.
 
 ### 1.1. Self-First MVP Strategy
 
@@ -39,9 +56,13 @@ Issues and Pull Requests** on the ReviewCat repository itself:
 
 - **Issues** = work items (review findings, feature requests, bugs).
 - **PRs** = implementations (code changes with linked issues).
-- **PR/Issue comments** = inter-agent communication channel.
+- **PR/Issue comments** = durable discussion/traceability channel.
 - **Labels** = agent ownership, priority, status, category.
-- **Branches/Worktrees** = isolated parallel work environments.
+- **Containers + branches/worktrees** = isolated parallel work environments.
+
+Real-time worker telemetry (heartbeats, structured error reports, memory sync)
+is handled by an **agent bus** (see §5.5), while GitHub remains the durable
+coordination layer.
 
 This is distinct from the **app's runtime behavior** which creates issues/PRs
 on the end user's target repository.
@@ -57,7 +78,7 @@ Review-Cat/
 │   │   ├── core/           # Core library (components, entities, systems)
 │   │   ├── cli/            # CLI frontend (main, arg parsing)
 │   │   ├── daemon/         # Daemon / watch mode
-│   │   ├── ui/             # UI window (imgui or similar)
+│   │   ├── ui/             # UI surfaces (runtime UI and optional dev harness visualizer)
 │   │   └── copilot/        # Copilot CLI subprocess bridge
 │   ├── include/            # Public C++ headers
 │   ├── tests/              # C++ test suite (Catch2)
@@ -123,8 +144,9 @@ entirely of **shell scripts** and **Copilot CLI agent profiles**:
 - **Heartbeat system** — persistent bash loop that keeps the Director alive
 - **GitHub MCP integration** — agents use GitHub MCP Server to create/read
   issues, PRs, comments as their primary communication channel
-- **Worktree parallelism** — multiple agents work simultaneously in isolated
-  git worktrees in the same parent directory
+- **Worker parallelism** — multiple agents work simultaneously in isolated
+  Docker containers, each bind-mounted to an isolated git worktree in the same
+  parent directory
 - **Progress tracking** — GitHub Issues + PRD backlog + audit bundles
 
 ## 3. Technology Stack
@@ -134,7 +156,7 @@ entirely of **shell scripts** and **Copilot CLI agent profiles**:
 | Language | **C++17/20** | Fast native binary; no runtime deps; cross-platform |
 | Build system | **CMake** | Industry standard for C++ projects |
 | Shell scripts | **Bash** | Dev harness, agent orchestration, build/test/CI |
-| UI toolkit | **Dear ImGui** (with SDL2/GLFW backend) | Lightweight immediate-mode GUI; single window; easy to embed |
+| UI toolkit | **SDL3** (window/input) + **custom ToolUI** (primitives + bitmap glyph font + hex colors) + optional 3D visualizer | Avoid external UI frameworks; keep UI stack minimal and fully controlled; supports runtime UI + operator-focused swarm visualizer |
 | Copilot integration | **`copilot -p`** subprocess calls | Invoke Copilot CLI from C++ via `popen`/`fork+exec` or from shell scripts |
 | GitHub integration | **GitHub MCP Server** | Agents use MCP tools for issues, PRs, comments, branches |
 | Git ops | **libgit2** + **`git worktree`** | Programmatic git from C++; parallel worktrees for agents |
@@ -160,13 +182,17 @@ Copilot CLI agents can use to interact with GitHub.
   the MCP server is configured. Agents can `create_issue`, `create_pull_request`,
   `add_issue_comment`, etc. directly in their prompt context.
 
-**Deployment options (lightweight — no Docker required):**
+**Deployment options (MVP-friendly; can run on host or in containers):**
 
 | Option | Method | Best for |
 |--------|--------|----------|
 | **Remote server** (preferred) | `https://api.githubcopilot.com/mcp/` | Zero install; HTTP-based; always up-to-date |
 | **Pre-built binary** | Download from [GitHub Releases](https://github.com/github/github-mcp-server/releases) | Offline use; single Go binary; no build step |
 | **Build from source** | `go build ./cmd/github-mcp-server` | Custom patches; development |
+
+The dev harness may run inside Docker (WSL2-friendly). In that model, you can:
+- use the **remote** MCP server (simplest), or
+- bundle/mount the native `github-mcp-server` binary into the container image.
 
 **MCP config for native binary (`dev/mcp/github-mcp.json`):**
 
@@ -290,10 +316,10 @@ Agent 0 is a **bash script** (`dev/harness/director.sh`) that runs in a loop:
 │                 └────────────┘                          │
 │                                                          │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │           Parallel Worktrees                      │   │
+│  │     Parallel Worker Containers (shared image)     │   │
 │  │  ┌─────────┐  ┌─────────┐  ┌─────────┐          │   │
 │  │  │Worker 1 │  │Worker 2 │  │Worker 3 │  ...      │   │
-│  │  │(branch) │  │(branch) │  │(branch) │          │   │
+│  │  │(worktree)│ │(worktree)│ │(worktree)│         │   │
 │  │  └─────────┘  └─────────┘  └─────────┘          │   │
 │  └──────────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────┘
@@ -319,7 +345,8 @@ while true; do
     BACKLOG=$(jq -r '.[] | select(.passes == false) | .id' \
         dev/plans/prd.json 2>/dev/null | head -5)
 
-    # 3. Check active worktrees / workers
+    # 3. Check active workers (containers) / worktrees
+    # (Implementation choice: count containers, or derive from worktree list)
     ACTIVE=$(git worktree list --porcelain | grep -c "worktree")
 
     # 4. For each available worker slot, dispatch work
@@ -348,10 +375,11 @@ while true; do
 done
 ```
 
-### 5.2. Worktree-Based Parallel Execution
+### 5.2. Container + Worktree-Based Parallel Execution
 
-Each coding agent works in an isolated **git worktree** in the same parent
-directory as the main repo:
+Each coding agent runs as a **worker container** (all workers share the same
+Docker image tag), and each worker container is bind-mounted to an isolated
+**git worktree** in the same parent directory as the main repo.
 
 ```
 ~/source/repos/
@@ -379,6 +407,14 @@ teardown() {
 }
 ```
 
+**Worker container model (dev harness):**
+
+- **One shared image tag** for all workers (e.g., `reviewcat-dev:main`)
+- **One container per task** (worker) with a deterministic name (e.g., `reviewcat-worker-<issue>-<ts>`)
+- Bind-mount the worktree into the container (e.g., host `../Review-Cat-agent-...` → container `/workspace`)
+- Pass task context via env vars (`ISSUE_NUMBER`, `BRANCH_NAME`, `REPO`) and/or CLI args
+- Prefer **scale-to-zero**: stop/remove worker containers when idle or finished
+
 This enables **true parallel execution**: multiple agents can compile, test,
 and commit independently without conflicts. The Director manages the lifecycle
 and ensures PRs are created when work is complete.
@@ -386,7 +422,8 @@ and ensures PRs are created when work is complete.
 ### 5.3. Agent Cycle Script
 
 `dev/harness/run-cycle.sh` orchestrates role agents for a single task in a
-worktree:
+worktree (typically executed *inside* the worker container with the worktree
+mounted as the container workspace):
 
 ```bash
 #!/usr/bin/env bash
@@ -500,7 +537,14 @@ for PERSONA in security performance architecture testing docs; do
 done
 ```
 
-### 5.5. Inter-Agent Communication via GitHub
+### 5.5. Inter-Agent Communication (GitHub + Agent Bus)
+
+Agents coordinate through **two channels**:
+
+1) **GitHub** — durable coordination (source of truth for work)
+2) **Agent bus** — real-time telemetry + structured messaging (worker state, errors, memory sync)
+
+#### GitHub (durable)
 
 Agents communicate through GitHub's native features:
 
@@ -513,6 +557,18 @@ Agents communicate through GitHub's native features:
 | **PR reviews** | Approval/request changes | QA agent approves after tests pass |
 | **Labels** | Categorization and routing | `agent-task`, `security`, `in-progress` |
 | **Linked issues** | Traceability | PR description says "Closes #42" |
+
+#### Agent bus (real-time)
+
+In addition to GitHub, workers maintain a lightweight socket connection to the
+Director (hub-and-spoke MVP). This enables:
+
+- **Worker state telemetry** (stage + progress + heartbeat)
+- **Structured error reports** for recovery/retry (Docker/MCP/GitHub/bus)
+- **ProjectState snapshots** for the future UI (live swarm graph)
+- **Memory synchronization** via a bounded in-memory agent-bus event buffer, compacted into engram DTO batches under `/memory/` with an authoritative catalog at `memory/catalog.json` (see Issue #13)
+
+All timings and ports live in `config/dev.toml` (see Issue #5).
 
 **Label taxonomy for agent coordination:**
 
@@ -588,7 +644,14 @@ cd Review-Cat
 
 ### 6.1. UI Window
 
-A native window built with **Dear ImGui** (SDL2 or GLFW backend) provides:
+A native window built with **SDL3** (window/input) and a **custom ToolUI** (draw primitives + bitmap font) provides:
+
+- **Two status bars**
+  - **Top bar:** single-line hotkey helper text (e.g., F1–F12)
+  - **Bottom bar:** current focused panel/view state + status info
+- **Layered UI**
+  - A “world/scene” viewport (e.g., swarm graph visualization)
+  - Overlay panels/windows with explicit **z-index** ordering (including modal confirmations)
 
 - **Dashboard** — Active review status, recent findings, daemon health.
 - **Agent Status** — Live view of active agents, worktree status, current task,
@@ -598,8 +661,13 @@ A native window built with **Dear ImGui** (SDL2 or GLFW backend) provides:
 - **Stats** — Review counts, finding trends, persona breakdown, agent uptime.
 - **Agent Personas** — Enable/disable personas, adjust severity thresholds.
 - **Audit Log** — Browse past review runs and their artifacts.
-- **Log Viewer** — Live scrolling log output (spdlog sink) with level filtering.
+- **Log Viewer** — Live scrolling log output with level filtering (ToolUI text rendering).
 - **Controls** — Start/stop daemon, trigger manual review, open audit directory.
+
+Optionally, the UI can expose a **swarm visualizer** mode intended for the
+dev harness: it connects to the agent bus (socket pub/sub) and renders a live
+3D scene of workers, tasks, and message edges, with panels for start/stop,
+pause/unpause, filtering, and inspecting structured status/error payloads.
 
 The UI is compiled into the `reviewcat` binary. Running `reviewcat ui` opens the
 window. The daemon can run headless (no UI) via `reviewcat watch`.
@@ -701,7 +769,9 @@ The Director uses GitHub as its coordination layer:
 - The Director manages up to `MAX_WORKERS` concurrent worktrees.
 - Each agent's work is verified by build/test results before PR creation.
 - Verified PRs are merged back to main.
-- Agents communicate via GitHub Issue/PR comments, not file-based IPC.
+- Durable coordination is via GitHub Issues/PRs/comments/labels.
+- Real-time telemetry and memory sync use the agent bus (see §5.5).
+- Avoid ad-hoc file-based IPC between workers.
 
 ### 8.4. Coding Agent Workflow
 
@@ -719,7 +789,9 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
 ## 9. Phased Implementation Plan
 
 ### Phase 0: Bootstrap & Dev Harness (PRIORITY — Get Director Running)
+- **Bootstrap scaffold milestone:** see Issue #16.
 - Create `app/` and `dev/` directory structure.
+- Create `config/dev.toml` (dev harness timings, ports, worker limits; no secrets).
 - Write `dev/scripts/setup.sh` (install system prereqs: gh, jq,
   github-mcp-server binary, verify toolchain).
 - Write `dev/scripts/bootstrap.sh` (configure MCP, create initial issues,
@@ -774,7 +846,8 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
 - Implement `reviewcat fix` command.
 
 ### Phase 6: End-User UI (C++)
-- Integrate Dear ImGui with SDL2 or GLFW backend.
+- Integrate SDL3 window/input with custom ToolUI (primitives + bitmap font + hex colors).
+- Implement status bars (top hotkey helper, bottom focus/status).
 - Implement dashboard, settings, stats, audit log, daemon controls.
 
 ### Phase 7: Polish & Distribution
@@ -790,7 +863,7 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
 | Language | **C++17/20** | Fast native binary; no runtime deps; cross-platform |
 | Dev harness | **Bash scripts** | Simple, no build step needed, runs anywhere with Copilot CLI |
 | Build system | **CMake** | Industry standard for C++ |
-| UI framework | **Dear ImGui** | Lightweight, immediate-mode, easy to embed in C++ binary |
+| UI framework | **SDL3 + custom ToolUI** | SDL3 handles window/input; ToolUI provides primitives + bitmap font; explicit layering/z-index; optional 3D view for swarm visualization |
 | Copilot invocation | **Subprocess** (`copilot -p`) | No SDK dependency; works from both bash and C++ |
 | GitHub integration | **GitHub MCP Server** | Native MCP tools for issues, PRs, comments; replaces raw `gh` CLI |
 | Agent communication | **GitHub Issues/PRs/Comments** | Transparent, auditable, enables parallel agents |
