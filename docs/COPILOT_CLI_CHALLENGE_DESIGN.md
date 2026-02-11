@@ -1,7 +1,7 @@
 # ReviewCat: Autonomous AI-Powered Code Review Daemon
 
 This is the primary design doc for ReviewCat — an autonomous code review daemon
-powered by GitHub Copilot CLI and SDK.
+powered by GitHub Copilot CLI.
 
 > **See also:** [PLAN.md](../PLAN.md) for the comprehensive project plan and
 > [TODO.md](../TODO.md) for the actionable task list.
@@ -10,8 +10,8 @@ Design principles:
 
 - **Autonomous development** — ReviewCat builds itself using Copilot CLI agents
   orchestrated by a Director daemon (Agent 0).
-- **Copilot CLI SDK embedded** — The SDK powers both development agents and
-  runtime review personas.
+- **Copilot CLI subprocess** — Copilot CLI is invoked via subprocess calls
+  from both bash scripts (dev harness) and C++ (runtime app).
 - **Safe by default** — Dry-run, allowlists, explicit opt-in for mutations.
 - **Two-part architecture** — `app/` (the product) and `dev/` (the meta-tooling).
 - **WSL-native** — Developed and tested on WSL/Linux with Copilot CLI.
@@ -43,9 +43,9 @@ Product goals:
   - a no-auth demo mode
   - optional GitHub mode (gh-based) with clear instructions
 
-Hackathon goals:
+Development goals:
 
-- Prove Copilot CLI was meaningfully used during development and at runtime.
+- Use Copilot CLI meaningfully during development and at runtime.
 - Demonstrate Copilot CLI features (programmatic mode, plan mode, permissions guardrails).
 
 ## Non-goals
@@ -53,10 +53,10 @@ Hackathon goals:
 - Fully replacing human review.
 - Auto-merging changes by default.
 - Requiring external cloud services (everything runs locally).
-- Shipping without a UI (a minimal Electron window is part of the product).
+- Shipping without a UI (a lightweight native window is part of the product).
 
-The UI is a lightweight Electron window providing settings, stats, and
-command-and-control — not a full GUI-first product.
+The UI is a lightweight **Dear ImGui** window (SDL2/GLFW backend) providing
+settings, stats, and command-and-control — not a full GUI-first product.
 
 ## Target users
 
@@ -209,14 +209,13 @@ Representative systems:
 
 ReviewCat uses Copilot CLI as the analysis and generation engine.
 
-### Invocation modes
+### Invocation mode
 
-- **Embedded SDK mode** (primary) — The `@github/copilot` SDK is embedded
-  directly into the project, powering both development agents and runtime
-  review personas.
-- **CLI subprocess mode** (fallback) — Invoke `copilot -p "..."` as a
-  subprocess when SDK is unavailable.
+- **CLI subprocess mode** — Invoke `copilot -p "..."` as a subprocess.
+  - From **bash scripts** (dev harness): direct `copilot -p` calls.
+  - From **C++ binary** (runtime app): `popen`/`fork+exec` subprocess wrapper.
 - Plan mode for complex end-to-end tasks (optional).
+- No SDK or npm dependency — Copilot CLI is the only external requirement.
 
 ### Guardrails
 
@@ -230,10 +229,10 @@ ReviewCat treats safety as part of UX: users can opt into broader permissions, b
 
 Every Copilot CLI interaction is recorded as an append-only log.
 
-This is critical for the hackathon:
+This is critical for auditability:
 
-- judges can see Copilot CLI usage clearly
-- reviewers can reproduce a run
+- reviewers can see Copilot CLI usage clearly
+- runs can be reproduced deterministically
 - improvements can be made to prompts empirically
 
 ## Self-building development workflow (DirectorDev)
@@ -262,7 +261,7 @@ The Director recursively delegates until a feature is complete.
 ### How this maps to Copilot CLI features
 
 - Custom agents are defined in `.github/agents/` (repository-level).
-- The embedded Copilot CLI SDK invokes agents programmatically.
+- Copilot CLI is invoked via subprocess (`copilot -p`) from bash scripts.
 - The heartbeat daemon runs agents in a repeatable, auditable loop.
 - Record/replay mode enables deterministic testing without live Copilot calls.
 
@@ -290,7 +289,7 @@ The Director daemon runs continuously with a configurable interval:
 
 DirectorDev generates auditable evidence for every cycle:
 
-- Prompt ledger (every Copilot CLI SDK call logged)
+- Prompt ledger (every Copilot CLI subprocess call logged)
 - Before/after diffs
 - Build/test output logs
 - Agent output transcripts
@@ -302,16 +301,16 @@ Artifacts are stored under `dev/audits/<audit_id>/`.
 > **Canonical plan:** See [PLAN.md](../PLAN.md) §9 for the phased plan
 > and [TODO.md](../TODO.md) for the full task list.
 
-The implementation language is **TypeScript** (Node.js). The project uses the
-`@github/copilot` SDK embedded directly.
+The implementation language is **C++17/20**. The dev harness is **bash shell
+scripts**. Copilot CLI is invoked as a subprocess — no SDK or npm dependency.
 
 ### Phase 0: Repository bootstrap and dev harness
 
 - Create `app/` and `dev/` directory structure.
-- Initialize TypeScript project.
-- Install Copilot CLI SDK.
-- Create Agent 0 heartbeat daemon skeleton.
-- Define agent profiles in `.github/agents/`.
+- Set up CMake build system for C++ project.
+- Write build/test/clean shell scripts.
+- Create Agent 0 heartbeat daemon skeleton (`dev/harness/director.sh`).
+- Define agent profiles in `.github/agents/` and `dev/agents/`.
 
 ### Phase 1: Director agent (Agent 0)
 
@@ -340,11 +339,11 @@ The implementation language is **TypeScript** (Node.js). The project uses the
 
 ### Phase 6: End-user UI
 
-- Electron window: dashboard, settings, stats, audit log, daemon controls.
+- Dear ImGui window (SDL2/GLFW): dashboard, settings, stats, audit log, daemon controls.
 
 ### Phase 7: Polish and distribution
 
-- Packaging, error handling, logging, documentation.
+- Single static binary, error handling, spdlog logging, documentation.
 
 ## Testing strategy
 
@@ -391,6 +390,6 @@ This ensures the project remains testable even if Copilot CLI is unavailable.
   - Comprehensive specs in `docs/specs/`
 
 - Package includes:
-  - npm-installable CLI (`npm install -g reviewcat`)
-  - Electron desktop app (optional download)
+  - Single static binary (`reviewcat`) — no runtime dependencies
+  - Dear ImGui UI built into the binary (`reviewcat ui`)
   - Default config template (`reviewcat.toml`)

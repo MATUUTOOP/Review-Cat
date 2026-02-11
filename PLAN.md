@@ -27,16 +27,21 @@ The repository is split into two top-level sections:
 ```
 Review-Cat/
 ├── app/                    # The product — what end users run
-│   ├── src/                # Application source code
-│   ├── ui/                 # UI window (settings, stats, control)
-│   ├── agents/             # Runtime review persona agents
+│   ├── src/                # C++ application source code
+│   │   ├── core/           # Core library (components, entities, systems)
+│   │   ├── cli/            # CLI frontend (main, arg parsing)
+│   │   ├── daemon/         # Daemon / watch mode
+│   │   ├── ui/             # UI window (imgui or similar)
+│   │   └── copilot/        # Copilot CLI subprocess bridge
+│   ├── include/            # Public C++ headers
+│   ├── tests/              # C++ test suite (Catch2)
 │   ├── config/             # Default configs, persona templates
-│   ├── scripts/            # Build, test, package scripts
-│   └── tests/              # App test suite
+│   ├── scripts/            # Build, test, package shell scripts
+│   └── CMakeLists.txt      # App build system
 │
 ├── dev/                    # The meta-tooling — what builds the product
-│   ├── agents/             # Development role agents (Director, Implementer, QA, etc.)
-│   ├── harness/            # Heartbeat daemon, orchestration scripts
+│   ├── agents/             # Development role agent prompt files
+│   ├── harness/            # Heartbeat daemon shell scripts
 │   ├── plans/              # PRD items, task graphs, progress tracking
 │   ├── prompts/            # Prompt templates for dev agents
 │   ├── scripts/            # Dev harness bootstrap and utility scripts
@@ -52,6 +57,12 @@ Review-Cat/
 │   ├── IMPLEMENTATION_CHECKLIST.md
 │   └── PROMPT_COOKBOOK.md
 │
+├── scripts/                # Top-level convenience scripts
+│   ├── build.sh            # Build the app
+│   ├── test.sh             # Run all tests
+│   └── clean.sh            # Clean build artifacts
+│
+├── CMakeLists.txt          # Root CMake (delegates to app/)
 ├── PLAN.md                 # This file
 ├── TODO.md                 # Actionable task list
 └── README.md               # Project overview and quick start
@@ -59,59 +70,64 @@ Review-Cat/
 
 ### 2.1. `app/` — The Product
 
-This is the ReviewCat application that end users install and run. It contains:
+This is the ReviewCat application that end users build and run. It contains:
 
-- **CLI frontend** (`reviewcat` commands: `demo`, `review`, `pr`, `fix`, `watch`)
+- **CLI frontend** (`reviewcat` binary: `demo`, `review`, `pr`, `fix`, `watch`)
 - **Daemon mode** — persistent background process that monitors a repo
-- **UI window** — lightweight desktop window for settings, stats, and control
-- **Runtime agents** — persona review agents powered by embedded Copilot CLI SDK
+- **UI window** — lightweight native window for settings, stats, and control
+- **Runtime agents** — persona review agents powered by Copilot CLI subprocess calls
 - **Audit system** — structured artifact output for every review run
 - **GitHub integration** — create PRs, issues, comments via `gh` CLI
 
 ### 2.2. `dev/` — The Development Harness
 
-This is the meta-tooling that builds ReviewCat autonomously. It contains:
+This is the meta-tooling that builds ReviewCat autonomously. It is composed
+entirely of **shell scripts** and **Copilot CLI agent profiles**:
 
-- **Agent 0 (Director)** — the always-running orchestrator daemon
+- **Agent 0 (Director)** — the always-running orchestrator daemon (shell script)
 - **Role agents** — Architect, Implementer, QA, Docs, Security, Code-Review
-- **Heartbeat system** — persistent loop that keeps the Director alive
-- **Progress tracking** — PRD items, task graphs, completion status
+- **Heartbeat system** — persistent bash loop that keeps the Director alive
+- **Progress tracking** — PRD items, task graphs, completion status (JSON files)
 - **Development audits** — prompt ledgers and agent outputs for every dev cycle
 
 ## 3. Technology Stack
 
 | Layer | Technology | Rationale |
 |-------|-----------|-----------|
-| Language | **TypeScript** (Node.js) | Copilot CLI SDK is npm-native; rapid iteration; works on WSL/Linux |
-| Runtime | **Node.js 20+** | Cross-platform, single runtime for CLI + daemon + UI |
-| UI | **Electron** (minimal shell) | Simple desktop window; settings, stats, control panels |
-| CLI | **Commander.js** | Standard Node.js CLI framework |
-| Copilot SDK | **@github/copilot** (embedded) | Powers both dev agents and runtime review agents |
-| Git ops | **simple-git** + **gh CLI** | Programmatic git + GitHub API operations |
-| Config | **TOML** (`reviewcat.toml`) | Human-readable, easy to edit |
-| Testing | **Vitest** | Fast, TypeScript-native test runner |
-| Build | **tsup** or **esbuild** | Fast TypeScript bundling |
-| Package | **npm** | Standard distribution |
+| Language | **C++17/20** | Fast native binary; no runtime deps; cross-platform |
+| Build system | **CMake** | Industry standard for C++ projects |
+| Shell scripts | **Bash** | Dev harness, agent orchestration, build/test/CI |
+| UI toolkit | **Dear ImGui** (with SDL2/GLFW backend) | Lightweight immediate-mode GUI; single window; easy to embed |
+| Copilot integration | **`copilot -p`** subprocess calls | Invoke Copilot CLI from C++ via `popen`/`fork+exec` or from shell scripts |
+| Git ops | **libgit2** + **`gh` CLI** | Programmatic git from C++; GitHub API via `gh` |
+| JSON | **nlohmann/json** | De facto C++ JSON library |
+| Config | **TOML** (`reviewcat.toml`) | Human-readable; parsed with `toml++` |
+| Testing | **Catch2** | Mature, header-only C++ test framework |
+| Package manager | **vcpkg** or git submodules | Dependency management for C++ libs |
+| Distribution | Single static binary + shell | No runtime dependencies for end users |
 
 ## 4. Agent Architecture
 
 ### 4.1. Development Agents (in `dev/`)
 
-These run during development to build ReviewCat itself:
+These are **shell scripts + Copilot CLI agent profiles** that run during
+development to build ReviewCat itself. They do NOT require the C++ app to be
+built — they operate purely via Copilot CLI and bash:
 
-| Agent | Role | Responsibilities |
-|-------|------|-----------------|
-| **Director (Agent 0)** | Orchestrator | Reads specs, decomposes work, assigns tasks, validates acceptance, runs heartbeat |
-| **Architect** | Design reviewer | Reviews architecture changes, watches complexity, enforces module boundaries |
-| **Implementer** | Code writer | Writes source code to match specs and acceptance criteria |
-| **QA** | Test engineer | Writes tests, runs test suites, adds record/replay fixtures |
-| **Docs** | Documentation | Maintains README, examples, prompt cookbook, specs |
-| **Security** | Security auditor | Enforces safe defaults, redaction, permission policy |
-| **Code-Review** | Reviewer | Reviews diffs, blocks low-signal changes, final quality gate |
+| Agent | Role | How It Runs |
+|-------|------|-------------|
+| **Director (Agent 0)** | Orchestrator | `dev/harness/director.sh` — bash heartbeat loop |
+| **Architect** | Design reviewer | `copilot -p @dev/agents/architect.md "..."` |
+| **Implementer** | Code writer | `copilot -p @dev/agents/implementer.md "..."` |
+| **QA** | Test engineer | `copilot -p @dev/agents/qa.md "..."` |
+| **Docs** | Documentation | `copilot -p @dev/agents/docs.md "..."` |
+| **Security** | Security auditor | `copilot -p @dev/agents/security.md "..."` |
+| **Code-Review** | Reviewer | `copilot -p @dev/agents/code-review.md "..."` |
 
 ### 4.2. Runtime Agents (in `app/`)
 
-These run when end users use ReviewCat to review code:
+These run when end users use ReviewCat to review code. They are invoked by the
+compiled C++ binary via Copilot CLI subprocess calls:
 
 | Agent | Persona | Focus Area |
 |-------|---------|-----------|
@@ -121,25 +137,28 @@ These run when end users use ReviewCat to review code:
 | **Testing** | Test coverage analyst | Missing tests, concrete test case proposals |
 | **Docs** | Documentation reviewer | Missing usage docs, confusing behaviors |
 
-### 4.3. Copilot CLI SDK Integration
+### 4.3. Copilot CLI Integration
 
-The Copilot CLI SDK (`@github/copilot`) is embedded directly into the project:
+Copilot CLI is invoked in two contexts:
 
-- **Development agents** invoke the SDK to generate code, run reviews, and
-  execute tasks during the autonomous build process.
-- **Runtime agents** invoke the SDK to run persona reviews when end users
-  trigger code review operations.
-- **Record/replay mode** stubs SDK responses for deterministic testing.
+1. **Development harness** (shell scripts) — `copilot -p "prompt"` called
+   directly from bash. This is how the autonomous dev loop works. No C++ needed.
+2. **Runtime app** (C++ binary) — The compiled `reviewcat` binary invokes
+   `copilot -p "prompt"` as a subprocess, captures stdout/stderr, parses JSON
+   responses, and writes the prompt ledger.
+
+In both cases, the integration is via the **Copilot CLI subprocess** (`copilot`
+command). There is no npm/node dependency.
 
 ## 5. Agent 0: The Director Daemon
 
 ### 5.1. Heartbeat System
 
-Agent 0 runs as a persistent daemon process with a heartbeat loop:
+Agent 0 is a **bash script** (`dev/harness/director.sh`) that runs in a loop:
 
 ```
 ┌─────────────────────────────────────────────┐
-│              Director Daemon                │
+│          Director Daemon (bash)             │
 │                                             │
 │  ┌─────────┐    ┌──────────┐    ┌────────┐ │
 │  │Heartbeat│───▶│  Check   │───▶│Execute │ │
@@ -153,40 +172,114 @@ Agent 0 runs as a persistent daemon process with a heartbeat loop:
 └─────────────────────────────────────────────┘
 ```
 
-**Heartbeat loop:**
+**Heartbeat loop (pseudocode):**
 
-1. **Wake** — Timer fires (configurable interval, default 60s).
-2. **Check backlog** — Read `dev/plans/prd.json` and `dev/plans/progress.json`.
-3. **Select next task** — Pick highest-priority incomplete item.
-4. **Load spec** — Read the target spec from `docs/specs/`.
-5. **Decompose** — Create sub-tasks and assign to role agents.
-6. **Execute cycle** — Run role agents sequentially with checkpoints.
-7. **Validate** — Run build + tests. If fail, retry or log error.
-8. **Record** — Write development audit bundle to `dev/audits/`.
-9. **Commit** — Commit changes with structured commit message.
-10. **Sleep** — Wait for next heartbeat interval.
+```bash
+#!/usr/bin/env bash
+# dev/harness/director.sh
 
-### 5.2. Guardrails
+INTERVAL=${DIRECTOR_INTERVAL:-60}
+MAX_RETRIES=3
 
-- **Dry-run default** — no git push, no GitHub mutations without explicit opt-in.
+while true; do
+    # 1. Check backlog
+    TASK=$(jq -r '.[] | select(.passes == false) | .id' dev/plans/prd.json | head -1)
+
+    if [ -z "$TASK" ]; then
+        echo "[director] All tasks complete. Sleeping..."
+        sleep "$INTERVAL"
+        continue
+    fi
+
+    # 2. Load spec for the task
+    SPEC=$(jq -r ".[] | select(.id == \"$TASK\") | .spec" dev/plans/prd.json)
+
+    # 3. Run agent cycle
+    ./dev/harness/run-cycle.sh "$TASK" "$SPEC"
+
+    # 4. Validate (build + test)
+    ./scripts/build.sh && ./scripts/test.sh
+    if [ $? -eq 0 ]; then
+        # Mark task complete
+        jq "(.[] | select(.id == \"$TASK\")).passes = true" \
+            dev/plans/prd.json > tmp.json && mv tmp.json dev/plans/prd.json
+        git add -A && git commit -m "feat($TASK): implement spec $SPEC"
+    fi
+
+    # 5. Record audit
+    ./dev/harness/record-audit.sh "$TASK"
+
+    # 6. Sleep
+    sleep "$INTERVAL"
+done
+```
+
+### 5.2. Agent Cycle Script
+
+`dev/harness/run-cycle.sh` orchestrates the role agents for a single task:
+
+```bash
+#!/usr/bin/env bash
+# dev/harness/run-cycle.sh <task_id> <spec_path>
+
+TASK=$1
+SPEC=$2
+AUDIT_DIR="dev/audits/$(date +%Y%m%d-%H%M%S)-${TASK}"
+mkdir -p "$AUDIT_DIR/ledger"
+
+# 1. Implementer writes code
+copilot -p @dev/agents/implementer.md \
+    "Implement the following spec: $(cat docs/specs/$SPEC)" \
+    --allow-tools write \
+    2>&1 | tee "$AUDIT_DIR/ledger/implementer.txt"
+
+# 2. QA writes tests
+copilot -p @dev/agents/qa.md \
+    "Write tests for the spec: $(cat docs/specs/$SPEC)" \
+    --allow-tools write \
+    2>&1 | tee "$AUDIT_DIR/ledger/qa.txt"
+
+# 3. Docs updates documentation
+copilot -p @dev/agents/docs.md \
+    "Update docs for: $(cat docs/specs/$SPEC)" \
+    --allow-tools write \
+    2>&1 | tee "$AUDIT_DIR/ledger/docs.txt"
+
+# 4. Security review
+copilot -p @dev/agents/security.md \
+    "Security review for changes related to: $(cat docs/specs/$SPEC)" \
+    2>&1 | tee "$AUDIT_DIR/ledger/security.txt"
+
+# 5. Code review
+copilot -p @dev/agents/code-review.md \
+    "Review the diff: $(git diff HEAD)" \
+    2>&1 | tee "$AUDIT_DIR/ledger/code-review.txt"
+```
+
+### 5.3. Guardrails
+
+- **Dry-run default** — no `git push`, no GitHub mutations without explicit opt-in.
 - **Scope lock** — Director refuses to modify files outside the spec's scope.
 - **Retry budget** — Max 3 retries per sub-task before marking failed.
 - **Dangerous command deny list** — `rm -rf`, `git push --force`, etc.
-- **Watchdog** — If a cycle exceeds timeout, Director kills and logs.
+- **Watchdog** — If a cycle exceeds timeout, Director kills the subprocess.
+- **Permission profiles** — Copilot CLI `--allow-tools` / `--deny-tools` flags.
 
-### 5.3. Bootstrap Sequence
+### 5.4. Bootstrap Sequence
 
 To cold-start the Director for the first time:
 
 ```bash
-# 1. Install dependencies
-cd Review-Cat && npm install
+# 1. Clone and enter the repo
+cd Review-Cat
 
 # 2. Bootstrap the dev harness
 ./dev/scripts/bootstrap.sh
 
-# 3. Start the Director daemon
-./dev/scripts/start-director.sh
+# 3. Start the Director daemon (runs in background)
+nohup ./dev/harness/director.sh &
+# Or interactively:
+./dev/harness/director.sh
 ```
 
 The Director reads `dev/plans/prd.json` for its initial work items and begins
@@ -196,7 +289,7 @@ executing cycles autonomously.
 
 ### 6.1. UI Window
 
-A minimal Electron window provides:
+A native window built with **Dear ImGui** (SDL2 or GLFW backend) provides:
 
 - **Dashboard** — Active review status, recent findings, daemon health.
 - **Settings** — Copilot credentials, GitHub access token, target repo, persona
@@ -206,13 +299,16 @@ A minimal Electron window provides:
 - **Audit Log** — Browse past review runs and their artifacts.
 - **Controls** — Start/stop daemon, trigger manual review, open audit directory.
 
+The UI is compiled into the `reviewcat` binary. Running `reviewcat ui` opens the
+window. The daemon can run headless (no UI) via `reviewcat watch`.
+
 ### 6.2. Settings Screen
 
 End users configure:
 
 | Setting | Description |
 |---------|------------|
-| Copilot credentials | Authentication for Copilot CLI SDK |
+| Copilot credentials | Authentication for Copilot CLI |
 | GitHub access token | PAT for creating PRs, issues, comments |
 | Target repository | `OWNER/REPO` to monitor |
 | Base branch | Default branch for diff comparison |
@@ -221,6 +317,8 @@ End users configure:
 | Auto-comment | Whether to post unified review as PR comment |
 | Auto-fix | Whether to generate and apply patches |
 | Redaction rules | Glob patterns for sensitive files to exclude |
+
+Settings are stored in `reviewcat.toml` (user-editable, no secrets in repo).
 
 ## 7. Core Review Pipeline (Runtime)
 
@@ -240,12 +338,14 @@ End users configure:
                                  └──────────┘
 ```
 
-1. **RepoDiffSystem** — Collect diffs, file lists, context windows.
-2. **PersonaReviewSystem** — Run persona agents via Copilot CLI SDK.
-3. **SynthesisSystem** — Deduplicate, prioritize, unify findings.
+1. **RepoDiffSystem** — Collect diffs via `libgit2` or `git` subprocess.
+2. **PersonaReviewSystem** — Run persona agents via `copilot -p` subprocess.
+3. **SynthesisSystem** — Deduplicate, prioritize, unify findings (C++).
 4. **AuditStoreSystem** — Write artifacts to disk, update index.
-5. **GitHubOpsSystem** — Post comments, create issues/PRs (opt-in).
+5. **GitHubOpsSystem** — Post comments, create issues/PRs via `gh` (opt-in).
 6. **PatchApplySystem** — Generate and apply safe patches (opt-in).
+
+All systems are implemented as C++ classes following the ECS-style separation.
 
 ## 8. Development Workflow
 
@@ -255,9 +355,9 @@ All development follows the spec-first pattern:
 
 1. Write or update a spec in `docs/specs/`.
 2. Director reads the spec and extracts requirements + acceptance criteria.
-3. Director assigns sub-tasks to role agents.
+3. Director assigns sub-tasks to role agents (via Copilot CLI).
 4. Agents implement, test, and document.
-5. Director validates against acceptance criteria.
+5. Director validates via `./scripts/build.sh && ./scripts/test.sh`.
 6. Director commits and records audit.
 
 ### 8.2. Development Loop (Ralph-Inspired)
@@ -265,101 +365,104 @@ All development follows the spec-first pattern:
 The Director uses a loop pattern inspired by the
 [Ralph Wiggum technique](https://www.humanlayer.dev/blog/brief-history-of-ralph):
 
-1. **Read** — Load PRD and progress state.
+1. **Read** — Load PRD and progress state from JSON files.
 2. **Pick** — Choose highest-priority incomplete item.
-3. **Implement** — Delegate to role agents.
-4. **Verify** — Run build + tests.
-5. **Update** — Mark item complete, log progress.
-6. **Commit** — Structured commit with audit trail.
-7. **Repeat** — Until all items pass or budget exhausted.
+3. **Implement** — Delegate to Copilot CLI role agents.
+4. **Verify** — Run `./scripts/build.sh && ./scripts/test.sh`.
+5. **Update** — Mark item complete in `dev/plans/prd.json`.
+6. **Commit** — `git add -A && git commit -m "..."`.
+7. **Repeat** — Until all items pass or retry budget exhausted.
 
 ### 8.3. Agent Orchestration (CEO-Inspired)
 
 Drawing from the [CEO Orchestration System](https://github.com/ivfarias/ceo):
 
 - Agent profiles are defined as markdown files in `.github/agents/`.
-- The Director (Agent 0) acts as the CEO: it doesn't execute work directly but
-  prescribes workflows and delegates to specialist agents.
+- The Director (Agent 0) acts as the CEO: it delegates to specialist agents.
 - Agents communicate via file-based artifacts (specs, code, test results).
+- No npm, no Node.js — pure shell + Copilot CLI.
 
 ### 8.4. Parallel Execution (Swarm-Inspired)
 
 Drawing from [Copilot Swarm Orchestrator](https://github.com/moonrunnerkc/copilot-swarm-orchestrator):
 
 - Independent tasks can run in parallel on isolated git branches.
-- Each agent's work is verified by parsing transcripts/outputs.
+- Each agent's work is verified by build/test results.
 - Verified branches merge back to main.
-- A wave scheduler groups independent tasks for parallel execution.
 
 ## 9. Phased Implementation Plan
 
 ### Phase 0: Repository Bootstrap & Dev Harness
 - Create `app/` and `dev/` directory structure.
-- Set up TypeScript project with build/test scripts.
-- Install Copilot CLI SDK.
-- Create Agent 0 heartbeat daemon skeleton.
-- Define agent profiles in `.github/agents/`.
+- Set up CMake build system for C++ project.
+- Create `scripts/build.sh`, `scripts/test.sh`, `scripts/clean.sh`.
+- Create `dev/harness/director.sh` (heartbeat daemon skeleton).
+- Create `dev/harness/run-cycle.sh` (agent cycle orchestration).
+- Define agent profiles in `.github/agents/` and `dev/agents/`.
 - Create `dev/plans/prd.json` initial backlog.
+- Verify `./scripts/build.sh && ./scripts/test.sh` works.
 
 ### Phase 1: Director Agent (Agent 0)
-- Implement heartbeat loop with configurable interval.
-- Implement spec reader (parse markdown specs into structured data).
-- Implement task decomposition (spec → sub-tasks → role assignments).
+- Implement Director heartbeat loop in bash.
+- Implement spec reader (extract tasks from markdown specs via shell).
+- Implement task decomposition (spec → Copilot CLI agent calls).
 - Implement sequential agent execution with checkpoints.
 - Implement build/test validation runner.
 - Implement development audit recording.
-- Implement progress tracking (`dev/plans/progress.json`).
+- Implement progress tracking (`dev/plans/prd.json` updates via `jq`).
 
-### Phase 2: Core App Skeleton
-- Implement CLI frontend with command stubs.
-- Implement `RunConfig` loading (TOML + CLI overrides).
+### Phase 2: Core App Skeleton (C++)
+- Implement CLI frontend (`main.cpp`, arg parsing).
+- Implement `RunConfig` component (TOML parsing via `toml++`).
 - Implement `AuditIdFactory` and `AuditStoreSystem`.
-- Implement prompt ledger (`PromptRecord`, `PromptFactory`).
+- Implement prompt ledger (`PromptRecord` as JSON via `nlohmann/json`).
+- Implement `ReviewFinding` and `ReviewInput` components.
 - Implement `reviewcat demo` with bundled sample diff.
+- Write unit tests with Catch2.
 
-### Phase 3: Review Pipeline
-- Implement `RepoDiffSystem` (git diff collection, filtering).
-- Implement `CopilotRunnerSystem` (Copilot CLI SDK invocation, record/replay).
+### Phase 3: Review Pipeline (C++)
+- Implement `RepoDiffSystem` (git diff via `libgit2` or subprocess).
+- Implement diff chunking for prompt budget management.
+- Implement `CopilotRunnerSystem` (`copilot -p` subprocess wrapper).
+- Implement record/replay mode for deterministic testing.
 - Implement `PersonaReviewSystem` (persona loop, JSON validation, repair).
 - Implement `SynthesisSystem` (dedupe, prioritize, unified markdown).
 - Implement `reviewcat review` end-to-end.
 
 ### Phase 4: GitHub Integration
-- Implement `GitHubOpsSystem` (fetch PR diff, post comment, create issue).
+- Implement `GitHubOpsSystem` (fetch PR diff, post comment via `gh`).
 - Implement `reviewcat pr` command.
 - Implement watch mode daemon for continuous monitoring.
 
 ### Phase 5: Patch Automation
 - Implement `PatchApplySystem` (generate patches, apply with safety checks).
 - Implement `reviewcat fix` command.
-- Implement fix branch creation and PR opening.
 
-### Phase 6: End-User UI
-- Set up Electron shell with IPC to daemon.
-- Implement dashboard view (status, recent findings).
-- Implement settings screen (credentials, repo, personas).
-- Implement stats view (charts, trends).
-- Implement audit log browser.
-- Implement daemon controls (start/stop, manual trigger).
+### Phase 6: End-User UI (C++)
+- Integrate Dear ImGui with SDL2 or GLFW backend.
+- Implement dashboard, settings, stats, audit log, daemon controls.
 
 ### Phase 7: Polish & Distribution
-- Package as npm installable.
-- Add comprehensive error handling and logging.
-- Add onboarding wizard for first-time setup.
+- Produce single static binary (`reviewcat`).
+- Add comprehensive error handling and logging (`spdlog`).
 - Write end-user documentation.
-- Create demo recording and sample outputs.
+- Set up CI/CD (GitHub Actions with CMake).
 
 ## 10. Key Design Decisions
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Language | TypeScript | Copilot SDK is npm-native; unified stack for CLI + daemon + UI |
-| UI framework | Electron | Cross-platform desktop window; minimal footprint |
+| Language | **C++17/20** | Fast native binary; no runtime deps; cross-platform |
+| Dev harness | **Bash scripts** | Simple, no build step needed, runs anywhere with Copilot CLI |
+| Build system | **CMake** | Industry standard for C++ |
+| UI framework | **Dear ImGui** | Lightweight, immediate-mode, easy to embed in C++ binary |
+| Copilot invocation | **Subprocess** (`copilot -p`) | No SDK dependency; works from both bash and C++ |
 | Agent communication | File-based artifacts | Simple, auditable, no IPC complexity |
-| Daemon model | Node.js long-running process | Single runtime, no system service dependency |
-| Config format | TOML | Human-readable, well-supported |
-| Test runner | Vitest | Fast, TypeScript ESM-native |
-| Dev loop model | Ralph Wiggum + CEO hybrid | Proven patterns from community projects |
+| Daemon model | Bash loop (dev) / C++ daemon (runtime) | Dev harness needs no compilation; runtime is compiled |
+| Config format | **TOML** | Human-readable, C++ parsers available |
+| Test framework | **Catch2** | Header-only, widely used, good CMake support |
+| JSON library | **nlohmann/json** | De facto standard for C++ JSON |
+| Git library | **libgit2** | C library with C++ wrappers; no subprocess needed |
 
 ## 11. Inspiration & Prior Art
 
@@ -367,17 +470,17 @@ Drawing from [Copilot Swarm Orchestrator](https://github.com/moonrunnerkc/copilo
 |---------|---------------|
 | [Ralph](https://github.com/soderlind/ralph) | Heartbeat loop, PRD-driven task picking, progress tracking, permission profiles |
 | [CEO Orchestration](https://github.com/ivfarias/ceo) | Agent profiles, index-driven discovery, workflow prescription, file-based coordination |
-| [Copilot Swarm Orchestrator](https://github.com/moonrunnerkc/copilot-swarm-orchestrator) | Parallel wave execution, branch isolation, transcript verification, agent specialization |
-| [TypedAI](https://github.com/TrafficGuard/typedai) | TypeScript agent framework patterns |
+| [Copilot Swarm Orchestrator](https://github.com/moonrunnerkc/copilot-swarm-orchestrator) | Parallel wave execution, branch isolation, transcript verification |
 | [Kodus AI](https://github.com/kodustech/kodus-ai) | Production code review agent patterns |
 
 ## 12. Risk Mitigation
 
 | Risk | Mitigation |
 |------|-----------|
-| Copilot CLI SDK quota limits | Record/replay mode for tests; caching per chunk/persona |
+| Copilot CLI quota limits | Record/replay mode for tests; caching per chunk/persona |
 | Agent produces bad code | Build/test validation gate; max retry budget; human review fallback |
-| Daemon crashes | Watchdog with auto-restart; graceful state persistence |
+| Daemon crashes | Watchdog with auto-restart in bash; PID file; graceful state persistence |
 | Scope creep in autonomous dev | Director enforces spec scope; refuse unscoped changes |
-| Credential exposure | Never store tokens in code; redaction rules; config exclusion |
+| Credential exposure | Never store tokens in code; redaction rules; `.gitignore` for config |
+| C++ compile times | Precompiled headers; modular CMake targets; incremental builds |
 | WSL-specific issues | Test on WSL Ubuntu; document WSL prerequisites |

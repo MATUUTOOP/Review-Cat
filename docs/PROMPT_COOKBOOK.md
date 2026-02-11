@@ -1,8 +1,12 @@
-# Prompt cookbook
+# Prompt Cookbook
 
 This is a curated set of prompt patterns used by ReviewCat.
 
-The intent is consistency and easy judge visibility.
+> **Context:** Prompts are invoked via `copilot -p "prompt"` subprocess calls —
+> from **bash scripts** (dev harness) and from the **C++ binary** (runtime app).
+> See [PLAN.md](../PLAN.md) §4.3 for integration details.
+
+The intent is consistency and auditable prompt engineering.
 
 ## Persona prompt contract
 
@@ -76,12 +80,55 @@ Prompt pattern:
   - prefer tests first
   - no unrelated formatting changes
 
-## DirectorDev planning prompt
+## DirectorDev Planning Prompt
 
 Prompt pattern:
 
-- Input: a spec file.
+- Input: a spec file from `docs/specs/`.
 - Output:
   - task graph
   - role assignments
   - exact acceptance criteria mapping
+
+## DirectorDev Heartbeat Prompts
+
+The Director daemon (`dev/harness/director.sh`) uses these prompt patterns
+when delegating to role agents:
+
+### Implementer
+
+```
+copilot -p @dev/agents/implementer.md \
+  "Implement the following spec: <spec content>. \
+   Write C++17/20 code under app/src/. Use nlohmann/json for JSON, \
+   toml++ for config, Catch2 for tests. Follow CMake build conventions." \
+  --allow-tools write
+```
+
+### QA
+
+```
+copilot -p @dev/agents/qa.md \
+  "Write Catch2 tests for the spec: <spec content>. \
+   Tests go under app/tests/. Use record/replay fixtures where Copilot \
+   CLI responses are needed." \
+  --allow-tools write
+```
+
+### Security
+
+```
+copilot -p @dev/agents/security.md \
+  "Security review the changes for: <spec content>. \
+   Check for: buffer overflows, unsafe subprocess calls, credential \
+   exposure, path traversal."
+```
+
+### Code Review
+
+```
+copilot -p @dev/agents/code-review.md \
+  "Review this diff: <git diff output>. \
+   Check for: C++ best practices, memory safety, error handling, \
+   consistent naming, CMake target correctness."
+```

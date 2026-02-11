@@ -15,10 +15,11 @@ This is intended to be implemented using Copilot CLI custom agents and a thin or
 
 ## Interfaces
 
-- Entry command: `reviewcat dev director --spec <path>`
-- Artifact output: `docs/audits/dev/<audit_id>/`
+- Entry: `dev/harness/director.sh` (heartbeat daemon) or manual `dev/harness/run-cycle.sh <task> <spec>`
+- Artifact output: `dev/audits/<audit_id>/`
 
-Role agents (custom agents) are defined under `.github/agents/` in the ReviewCat implementation repository.
+Role agents are defined under `.github/agents/` and `dev/agents/` as markdown
+prompt files, invoked via `copilot -p @dev/agents/<role>.md "..."`.
 
 ## Acceptance criteria
 
