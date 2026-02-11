@@ -45,4 +45,5 @@ build/
 Review-Cat-agent-*/
 dev/audits/*/
 .env
+STATE.json
 *.log

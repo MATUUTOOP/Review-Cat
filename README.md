@@ -151,9 +151,19 @@ Phase 0 scaffold + scripts exist):
 # Bootstrap dev environment
 ./dev/scripts/bootstrap.sh
 
-# Start Director daemon (Agent 0)
-./dev/harness/director.sh
+# Start daemon supervisor + Director (Agent 0)
+./dev/harness/daemon.sh
 ```
+
+The dev harness operates in **release cycles**:
+
+- the Director maintains a release branch/PR (`feature/release-*` → `main`)
+- worker PRs target the release branch
+- a dedicated merge agent finalizes the release into `main` and verifies the tag
+
+Each checkout may contain a gitignored root `STATE.json` used for **local cached
+state** (first-run vs resume, active release context). It is created lazily and
+never committed.
 
 The Director reads `dev/plans/prd.json`, delegates to Copilot CLI role agents,
 validates via build + test, and commits. See [PLAN.md](PLAN.md) §5 for details.

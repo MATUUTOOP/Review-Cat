@@ -32,6 +32,13 @@ The key intent is not full autonomy. The intent is:
 - autonomous forward progress with human oversight
 - circular self-improvement via GitHub Issues and PRs
 
+## Local cached state (`STATE.json`)
+
+Every checkout (main worktree and worker worktrees) may contain a gitignored
+`STATE.json` at repo root. The Director and workers create it lazily if absent.
+It stores **local cached state** (first-run vs resume, current release context,
+last-seen SHAs/hashes). It is never committed.
+
 ## Roles
 
 DirectorDev coordinates these roles:
@@ -93,32 +100,45 @@ See [PLAN.md](../PLAN.md) §5 for the full heartbeat loop pseudocode.
 
 ### Per-Heartbeat Algorithm
 
-1. **Scan GitHub** — List open issues labeled `agent-task` via GitHub MCP.
-2. **Check PRD** — Read `dev/plans/prd.json` for spec-driven work.
-3. **Check capacity** — Count active worktrees vs `MAX_WORKERS`.
-4. **Claim issues** — For each unclaimed issue within capacity, add
+1. **Ensure release context** — Maintain an active release branch and release PR:
+  - branch: `feature/release-<release_id>`
+  - PR: `feature/release-<release_id>` → `main`
+  - store `{release_id, branch, pr_number}` in `STATE.json`
+2. **Scan GitHub** — List open issues labeled `agent-task` via GitHub MCP.
+3. **Check PRD** — Read `dev/plans/prd.json` for spec-driven work.
+4. **Select release batch** — Decide which issues are in-scope for the current release.
+5. **Check capacity** — Count active worktrees vs `MAX_WORKERS`.
+6. **Claim issues** — For each unclaimed issue within capacity, add
    `agent-claimed` label via GitHub MCP.
-5. **Dispatch workers** — For each claimed issue:
+7. **Dispatch workers** — For each claimed issue:
    - Create worktree via `dev/harness/worktree.sh create`.
   - Start a worker container that executes `dev/harness/run-cycle.sh <issue> <branch>`
     with the worktree bind-mounted as the container workspace.
+  - Pass the active release branch name so worker PRs target the release branch.
 6. **Monitor workers** — Via `dev/harness/monitor-workers.sh`:
    - Check completed worktrees.
   - Ingest worker heartbeats/status from the agent bus (real-time state).
   - Correlate with Docker container state (running/exited/exit code).
-   - Validate build/test in completed worktrees.
-   - Agent creates PR via GitHub MCP.
+  - Validate build/test in completed worktrees.
+  - Agent creates PR via GitHub MCP targeting the active release branch.
    - Code-review agent reviews PR.
-   - On pass: merge PR, close issue, teardown worktree.
+  - On pass: merge PR into the release branch, teardown worktree.
    - On fail: retry (max 3), label `agent-blocked`.
 
 Real-time worker state is also emitted onto the agent bus. That telemetry is
 intended to power an optional **swarm visualizer** client (SDL3-based) that can
 render a live task graph and provide operator controls (start/stop/pause).
-7. **Self-review** — When idle (no issues, no PRD tasks):
+7. **Finalize release** — When all planned issues are merged into the release branch:
+  - invoke the merge agent expert to merge the release PR into `main`
+  - resolve merge conflicts if needed
+  - re-run validation gate(s)
+  - create/verify the release tag
+  - close issues included in the release (or ensure the release PR closes them)
+  - broadcast `release_published` on agent bus so workers can upgrade
+8. **Self-review** — When idle (no issues, no PRD tasks):
    - Run `dev/harness/review-self.sh`.
    - Create new GitHub Issues for critical/high findings.
-8. **Sleep** — Wait for configurable interval (default: 60s).
+9. **Sleep** — Wait for configurable interval (default: 60s).
 
 ### Per-Task Algorithm (run-cycle.sh)
 
@@ -135,6 +155,11 @@ render a live task graph and provide operator controls (start/stop/pause).
   - this pulls in newly merged engrams under `/memory/` (durable shared memory)
 5. **Validate** — `./scripts/build.sh && ./scripts/test.sh`.
 6. **Create PR** — Via GitHub MCP with `Closes #<issue>`.
+
+For release-oriented development, workers should instead:
+
+- target the active release branch
+- use `Refs #<issue>` (the release PR is what closes issues on merge to `main`)
 7. **Record audit** — Bundle all artifacts.
 
 If the swarm is over memory budget, the Director may also schedule a memory-maintenance task:
@@ -230,6 +255,19 @@ cd Review-Cat
 - **Severity threshold** — Auto-review only creates issues for critical/high findings.
 - **Deduplication** — Self-review checks for existing open issues to prevent flooding.
 - **PID file** — Single-instance enforcement for the Director daemon.
+
+## Upgrade safety points (worker containers)
+
+When a new version is published during an active swarm run, workers should only
+restart into the new shared image tag at **safe points**:
+
+- between commits
+- not mid-rebase/merge
+- ideally with a clean working tree
+
+If a worker is mid-edit and safe to discard, it may reset its worktree back to
+`HEAD` before restart. Otherwise, it should finish the critical git operation
+and restart at the next safe point.
 
 ## Recursive and Circular Behavior
 

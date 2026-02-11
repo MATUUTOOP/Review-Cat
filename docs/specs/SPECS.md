@@ -23,6 +23,7 @@ Specs are organized by category.
   - `MemorySyncSystem` — bounded event-buffer memory + oldest-first compaction into engrams under `/memory/`
   - `RequestBudgetSystem` — swarm-level pacing/backpressure for GitHub + model calls (rate limits, cooldowns)
   - `OrchestrationFSMSystem` — Director/worker finite state machines for dev harness behavior
+  - `ReleaseCycleSystem` — release batching via `feature/release-*`, merge-agent finalization, version broadcast + safe upgrades
 - `agents/` — Copilot CLI agent definitions and DirectorDev orchestration:
   - `DirectorDevAgent` — heartbeat daemon, worktree management, self-improvement
   - `RoleAgents` — agent roster (implementer, coder, QA, docs, security, etc.)

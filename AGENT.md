@@ -63,6 +63,13 @@ The Director is the orchestrator. It is the only agent allowed to:
 - create/merge PRs (depending on guardrail mode)
 - publish the authoritative swarm/memory state
 
+In addition, the Director is responsible for **release-cycle orchestration**:
+
+- scheduling a release (batch of issues) and maintaining a release plan
+- ensuring worker PRs land in the active **release branch** (`feature/release-*`)
+- invoking a dedicated **merge agent** to merge the release PR into `main`
+- verifying build/test gates + release tag, then broadcasting the new version
+
 ### Workers
 
 Workers do one thing: **execute exactly one assigned task** in their own worktree.
@@ -100,6 +107,73 @@ The agent bus is a lightweight socket/pub-sub channel (MVP: Director broker, hub
 - memory snapshot distribution and memory patch proposals
 
 All timings and networking settings are configured in `config/dev.toml`.
+
+## Local cached state: `STATE.json` (gitignored)
+
+Each repo checkout (including worker worktrees) may contain a root-level
+`STATE.json` file used as **local cached state** for the agent process.
+
+- `STATE.json` is **NOT committed** (must be gitignored).
+- It is **created lazily** by the daemon/Director/worker if missing.
+- It is used to detect **first-run vs resume** after container restart.
+- It may cache:
+	- last director heartbeat time
+	- current release id/branch/PR
+	- last-seen `main` HEAD SHA and/or memory catalog hash
+	- worker attempt counters / last-known stage
+
+`STATE.json` is an optimization and resilience mechanism only. Durable
+coordination remains GitHub Issues/PRs + tracked `/memory/**` engrams.
+
+## Release model (dev harness)
+
+For the MVP dev harness, work is executed in **release cycles**.
+
+### Release branch + release PR
+
+- The Director opens/maintains a release branch named:
+	- `feature/release-<release_id>`
+- The Director opens/maintains a single release PR:
+	- `feature/release-<release_id>` → `main`
+
+### Worker PR targeting
+
+- Worker PRs should normally target the **release branch**, not `main`.
+- Worker PRs should use `Refs #<issue>` rather than `Closes #<issue>`.
+- The release PR is responsible for closing issues (aggregated `Closes #...`).
+
+This keeps `main` merges controlled and makes it explicit which issues are part
+of a given release.
+
+### Merge agent (release finalization)
+
+When a release is ready (all planned issues merged into the release branch),
+the Director invokes a dedicated **merge agent expert** to:
+
+1. merge the release PR into `main`
+2. resolve merge conflicts (if any) using the release context + recent memory
+3. re-run the validation gate as required
+4. create/verify the release tag
+5. notify the Director of success/failure
+
+### Upgrade protocol (workers + new releases)
+
+When a new version is published:
+
+- The Director broadcasts `release_published` on the agent bus
+	(includes tag + `main` SHA + updated container image tag).
+- Workers may restart into the new container image **only at safe points**:
+	- between commits
+	- not mid-rebase/merge
+	- clean working tree (preferred)
+- If a worker is mid-edit and safe to discard, it may:
+	- `git reset --hard HEAD` (and `git clean -fd` if needed)
+	- restart and `git fetch`/`git merge` the last pushed commits for its branch
+- If a worker is in a critical git operation (commit/rebase/merge), it finishes
+	that operation first, then restarts at the next safe point.
+
+This keeps upgrades from corrupting in-flight work while allowing the swarm to
+converge on the latest harness/protocol changes.
 
 ## Standard state reporting (DTOs)
 

@@ -26,12 +26,20 @@ This spec is for the **dev harness** swarm (self-coding). Runtime app pipeline F
 
 - `BOOT`
   - load config, validate environment, open logs
+- `RELEASE_PLAN`
+  - ensure active release context exists (release branch + release PR)
+  - select a batch of issues for the current release
 - `DISCOVER`
   - fetch candidate work: open issues, PRD tasks
 - `DISPATCH`
   - claim an issue, create branch/worktree, start worker container
 - `MONITOR`
   - check worker heartbeats/status, collect results
+- `RELEASE_FINALIZE`
+  - invoke merge agent to merge release PR into `main`, resolve conflicts
+  - verify gates + tag
+- `BROADCAST`
+  - broadcast `release_published` (new version) to swarm over agent bus
 - `SELF_REVIEW`
   - run self-review when idle (creates new issues)
 - `COOLDOWN`
@@ -42,6 +50,9 @@ This spec is for the **dev harness** swarm (self-coding). Runtime app pipeline F
 ### Events / triggers
 
 - `tick` — heartbeat interval elapsed
+- `release_missing` — no active release context exists
+- `release_ready` — release plan complete; ready to merge release PR
+- `release_published(tag, main_sha, image_tag)` — new version published
 - `work_available` — eligible issues/tasks exist
 - `capacity_available` — active workers < max
 - `worker_completed(success|failure)`
@@ -53,10 +64,15 @@ This spec is for the **dev harness** swarm (self-coding). Runtime app pipeline F
 ### Transition sketch
 
 - `BOOT -> DISCOVER` on successful init
+- `BOOT -> RELEASE_PLAN` on successful init
+- `RELEASE_PLAN -> DISCOVER` when release context is ready
 - `DISCOVER -> DISPATCH` when `work_available && capacity_available`
 - `DISCOVER -> SELF_REVIEW` when `no_work && no_active_workers`
 - `DISPATCH -> MONITOR` after worker started and registered
 - `MONITOR -> DISCOVER` after processing completions / updating state
+- `MONITOR -> RELEASE_FINALIZE` on `release_ready`
+- `RELEASE_FINALIZE -> BROADCAST` on successful merge/tag
+- `BROADCAST -> DISCOVER` after broadcast completes
 - `ANY -> COOLDOWN` on `rate_limited` or repeated transient failures
 - `COOLDOWN -> DISCOVER` after cooldown expires
 - `ANY -> SHUTDOWN` on termination signal
@@ -86,6 +102,9 @@ Workers execute a **single task cycle** for an issue.
 
 - `START`
   - validate args, locate worktree, prepare audit directory
+- `UPGRADE_CHECKPOINT`
+  - check whether a newer release/image tag is available
+  - decide whether it is safe to restart now (safe point) or defer
 - `SYNC_MAIN`
   - update branch with `main` (or verify up-to-date)
 - `CONTEXT_LOAD`
@@ -116,7 +135,7 @@ Workers must classify failures as:
 
 ### Transition sketch
 
-- `START -> SYNC_MAIN -> CONTEXT_LOAD -> CODE -> VALIDATE`
+- `START -> UPGRADE_CHECKPOINT -> SYNC_MAIN -> CONTEXT_LOAD -> CODE -> VALIDATE`
 - `VALIDATE -> COMMIT` on pass
 - `COMMIT -> PR_CREATE -> REVIEW_REQUEST -> DONE`
 
@@ -124,6 +143,19 @@ On failure:
 
 - if retryable and retries remaining: `ANY -> RETRY_WAIT -> CODE` (or earlier state depending on failure)
 - else: `ANY -> BLOCKED`
+
+On upgrade:
+
+- if `release_published` is observed and the worker is at a **safe point**:
+  - exit cleanly so the Director/supervisor can restart the container in the new image
+- if not at a safe point:
+  - defer upgrade until the next `UPGRADE_CHECKPOINT`
+
+Safe point definition (MVP):
+
+- not mid-commit/rebase/merge
+- prefer clean working tree (`git status --porcelain` empty)
+- if dirty but safe to discard, worker may reset to `HEAD` before restart
 
 ### Worker state data (properties)
 

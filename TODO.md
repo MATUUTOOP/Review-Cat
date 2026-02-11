@@ -113,6 +113,8 @@ Run `dev/scripts/setup.sh` to automate these, or do them manually:
   Review-Cat-agent-*/
   dev/audits/*/
   .env
+  STATE.json
+  *.log
   ```
 - [ ] Write root `CMakeLists.txt` (delegates to `app/CMakeLists.txt`)
 - [ ] Write `app/CMakeLists.txt` with targets: `reviewcat` binary, `reviewcat_core` lib, `reviewcat_tests`
@@ -203,7 +205,7 @@ With them, you have a self-driving development daemon.
     - One **container per worker**
     - One **worktree per container**, bind-mounted as the container workspace
 - [ ] Write `dev/harness/run-cycle.sh` — Single task cycle (the "Claude Code session"):
-  - [ ] Accept args: `<issue_number> <branch_name>`
+  - [ ] Accept args: `<issue_number> <branch_name> [base_branch]`
   - [ ] `cd` into the worktree for this branch
   - [ ] Docker-first execution (recommended): run `run-cycle.sh` inside a worker container with the worktree mounted at a fixed path (e.g., `/workspace`)
   - [ ] Create audit dir: `dev/audits/$(date +%Y%m%d-%H%M%S)-${issue}/`
@@ -221,9 +223,11 @@ With them, you have a self-driving development daemon.
   - [ ] On success: `git add -A && git commit -m "fix(#${ISSUE}): ..."`
   - [ ] On success: invoke PR creation via MCP:
     ```bash
-    copilot -p "Create a PR from branch '${BRANCH}' to main on \
+    # NOTE: PRs should normally target the active release branch (feature/*),
+    # not main. The release PR (feature/* -> main) is what closes issues.
+    copilot -p "Create a PR from branch '${BRANCH}' to '${BASE_BRANCH}' on \
       p3nGu1nZz/Review-Cat. Title: 'fix(#${ISSUE}): ...' \
-      Body: 'Closes #${ISSUE}'. Use GitHub MCP tools." \
+      Body: 'Refs #${ISSUE} (batched into current release)'. Use GitHub MCP tools." \
       --mcp-config dev/mcp/github-mcp.json \
       2>&1 | tee "$AUDIT_DIR/ledger/pr-create.txt"
     ```
@@ -246,33 +250,66 @@ With them, you have a self-driving development daemon.
   - [ ] For each: check if agent process is still running
   - [ ] Track worker container state + heartbeat TTL (via agent bus + docker state)
   - [ ] For completed workers: validate build/test passed
-  - [ ] For passing workers: merge PR via MCP, close issue, teardown worktree
+  - [ ] For passing workers: merge PR **into active release branch** via MCP, teardown worktree
+  - [ ] Close issues only when the **release PR** (feature/* → main) is merged (or close explicitly as part of release finalization)
   - [ ] For failing workers: increment retry counter, re-dispatch or label `agent-blocked`
 - [ ] Write `dev/harness/record-audit.sh` — Audit recording:
   - [ ] Collect: ledger files, build.log, test.log, `git diff`
   - [ ] Write audit summary JSON
   - [ ] Update `dev/audits/index.json`
 
-### 0.7 — Director Daemon (the heartbeat loop — Agent 0 comes alive)
+### 0.7 — Daemon Supervisor + Director (keep-alive + Agent 0 orchestration)
+
+The **daemon supervisor** is responsible for keeping Agent 0 alive across
+interruptions (container restarts, transient failures) and coordinating
+**release-oriented upgrades**.
+
+- [ ] Add `STATE.json` (gitignored) to the repo contract:
+  - [ ] Created lazily by the daemon/Director if missing
+  - [ ] Stores **local cached state** only (never committed)
+  - [ ] Used to detect first-run vs resume after restart
+
+- [ ] Write `dev/harness/daemon.sh` — Supervisor daemon:
+  - [ ] Starts `dev/harness/director.sh` as a child process
+  - [ ] Keep-alive: if Director exits unexpectedly, restart with backoff
+  - [ ] Writes/updates `STATE.json` with last-seen heartbeat + current release context
+  - [ ] Upgrade handling:
+    - [ ] When a new release is published, supervisor updates worker image tag
+    - [ ] Workers may restart only at **safe points** (between commits; clean worktree)
+    - [ ] If a worker is mid-edit and safe to discard, it may `git reset --hard HEAD` and restart
+    - [ ] If a worker is mid-commit/rebase (unsafe), it finishes the critical section first
 
 - [ ] Write `dev/harness/director.sh` — The main daemon:
   - [ ] Load config from `config/dev.toml` (intervals, max workers, watchdogs, agent-bus ports)
   - [ ] PID file: write `$$` to `dev/harness/director.pid`, check on startup
   - [ ] Trap `SIGTERM`/`SIGINT` for graceful shutdown (teardown all worktrees)
+  - [ ] On startup, read/create `STATE.json`:
+    - [ ] Determine if this is first run vs resume
+    - [ ] Load current release context (if any)
   - [ ] **Main loop** (`while true`):
-    1. Scan open issues labeled `agent-task` via `gh issue list` (MCP fallback)
-    2. Check `dev/plans/prd.json` for spec-driven work
-    3. Count active worktrees via `dev/harness/worktree.sh count`
-    4. For each available worker slot + unclaimed issue:
+    1. Ensure there is an **active release plan** (or create one):
+       - Create/refresh a release branch: `feature/release-<id>`
+       - Create/refresh a release PR: `feature/release-<id>` → `main`
+       - Store the release id/branch/PR in `STATE.json`
+    2. Scan open issues labeled `agent-task` via GitHub MCP (gh fallback)
+    3. Select a batch of issues for the current release (release plan)
+    4. Count active worktrees via `dev/harness/worktree.sh count`
+    5. For each available worker slot + unclaimed issue:
        - Claim issue: add `agent-claimed` label, remove `agent-task`
        - Create branch: `agent/${ISSUE}-$(date +%s)`
        - Create worktree: `dev/harness/worktree.sh create $BRANCH`
-       - Dispatch: start a worker **container** (shared image tag) that runs `dev/harness/run-cycle.sh $ISSUE $BRANCH`
+       - Dispatch: start a worker **container** (shared image tag) that runs:
+         - `dev/harness/run-cycle.sh $ISSUE $BRANCH feature/release-<id>`
        - Register worker in swarm state (container id, worktree path, task id)
-    5. Monitor completed workers: `dev/harness/monitor-workers.sh`
-    6. If no issues and no PDR tasks and all workers idle:
+    6. Monitor completed workers: `dev/harness/monitor-workers.sh`
+    7. When all issues in the release plan are merged into `feature/release-<id>`:
+       - Invoke **merge agent expert** to merge the release PR into `main`
+       - Resolve merge conflicts (if any) using release-cycle context + memories
+       - Verify: build/test gates + release tag correctness
+       - Broadcast to swarm: "new version published" (agent bus)
+    8. If no issues and no PRD tasks and all workers idle:
        - Run `dev/harness/review-self.sh` (creates new issues → feeds the loop)
-    7. `sleep $INTERVAL`
+    9. `sleep $INTERVAL`
   - [ ] Log each heartbeat iteration to `dev/audits/director.log`
 
   > **Note (memory model):** Durable shared memory is **git-tracked** as engram JSON files under `/memory/st/<batch_id>/` (short-term) and `/memory/lt/<batch_id>/` (long-term), with an authoritative Director-maintained LUT at `memory/catalog.json`. The Director enforces **bounded policies** (max ST/LT files/bytes, max engram size).
@@ -323,7 +360,7 @@ system equivalent to running Claude Code in an autonomous loop.
 
 - [ ] Run `./dev/scripts/setup.sh` — verify all tools installed
 - [ ] Run `./dev/scripts/bootstrap.sh` — verify clean exit
-- [ ] Run `./dev/harness/director.sh` — let it execute **one full heartbeat**
+- [ ] Run `./dev/harness/daemon.sh` — let it execute **one full heartbeat** (supervisor + Director)
 - [ ] Verify: Director read open issues (printed to log)
 - [ ] Verify: Director created a worktree for an issue
 - [ ] Verify: Copilot CLI agent was invoked in the worktree with `--allow-tools write`
@@ -332,7 +369,8 @@ system equivalent to running Claude Code in an autonomous loop.
 - [ ] Verify: `scripts/test.sh` ran in worktree
 - [ ] Verify: Agent created a PR via GitHub MCP (PR visible on GitHub)
 - [ ] Verify: Code-review agent posted a review comment on the PR
-- [ ] Verify: Director merged the PR (or flagged for human review)
+- [ ] Verify: Director merged the worker PR into the active release branch
+- [ ] Verify: Merge agent merged the release PR into `main` (or flagged for human review)
 - [ ] Verify: Director tore down the worktree after merge
 - [ ] Verify: Audit bundle exists under `dev/audits/` with ledger files
 - [ ] Run `dev/harness/review-self.sh` independently — verify it creates ≥1 issue

@@ -301,6 +301,15 @@ In both cases, the integration is via the **Copilot CLI subprocess** with
 
 Agent 0 is a **bash script** (`dev/harness/director.sh`) that runs in a loop:
 
+In the MVP dev harness, the Director operates in **release cycles**:
+
+- maintain an active release branch: `feature/release-<release_id>`
+- maintain a single release PR: `feature/release-<release_id>` → `main`
+- worker PRs target the release branch; the release PR closes issues on merge
+
+Local cached process state (first-run vs resume, current release context) is
+stored in a gitignored root file `STATE.json` created lazily if missing.
+
 ```
 ┌──────────────────────────────────────────────────────────┐
 │              Director Daemon (bash)                      │
@@ -337,6 +346,10 @@ MAX_RETRIES=3
 REPO="p3nGu1nZz/Review-Cat"
 
 while true; do
+  # 0. Ensure release context exists (branch + release PR)
+  # RELEASE_BRANCH="feature/release-$(date -u +%Y%m%d-%H%M%SZ)"  # example id
+  # (Store release context in STATE.json)
+
     # 1. Check GitHub Issues for open work items
     ISSUES=$(gh issue list --repo "$REPO" --label "agent-task" \
         --state open --json number,title,labels --jq '.[].number')
@@ -358,11 +371,11 @@ while true; do
         # Create worktree and dispatch agent
         BRANCH="agent/${TASK}-$(date +%s)"
         ./dev/harness/worktree.sh create "$BRANCH"
-        ./dev/harness/run-cycle.sh "$TASK" "$BRANCH" &
+        ./dev/harness/run-cycle.sh "$TASK" "$BRANCH" "$RELEASE_BRANCH" &
         ACTIVE=$((ACTIVE + 1))
     done
 
-    # 5. Monitor completed worktrees → create PRs
+    # 5. Monitor completed worktrees → merge worker PRs into release branch
     ./dev/harness/monitor-workers.sh
 
     # 6. Self-review cycle (if no other work)
@@ -427,10 +440,11 @@ mounted as the container workspace):
 
 ```bash
 #!/usr/bin/env bash
-# dev/harness/run-cycle.sh <task_id> <branch>
+# dev/harness/run-cycle.sh <task_id> <branch> <base_branch>
 
 TASK=$1
 BRANCH=$2
+BASE_BRANCH=${3:-main}
 WORKTREE_DIR="../Review-Cat-${BRANCH//\//-}"
 AUDIT_DIR="dev/audits/$(date +%Y%m%d-%H%M%S)-${TASK}"
 
@@ -459,9 +473,9 @@ if [ $? -eq 0 ]; then
     git add -A
     git commit -m "feat(#${TASK}): implement changes"
 
-    copilot -p "Create a pull request for branch '${BRANCH}' that \
-        closes issue #${TASK}. Include a summary of changes and link \
-        the issue. Use GitHub MCP tools." \
+    copilot -p "Create a pull request for branch '${BRANCH}' into '${BASE_BRANCH}' that \
+      references issue #${TASK}. Use 'Refs #${TASK}' (issues close when the release PR merges to main). \
+      Include a summary of changes and link the issue. Use GitHub MCP tools." \
         2>&1 | tee "$AUDIT_DIR/ledger/pr-create.txt"
 
     # 5. Add review comment on the PR
