@@ -1,19 +1,20 @@
-# ReviewCat: Copilot CLI-Powered Persona Code Review Workflow
+# ReviewCat: Autonomous AI-Powered Code Review Daemon
 
-This is the primary design doc for a hackathon entry for the DEV "GitHub Copilot CLI Challenge".
+This is the primary design doc for ReviewCat — an autonomous code review daemon
+powered by GitHub Copilot CLI and SDK.
 
-Judging criteria:
+> **See also:** [PLAN.md](../PLAN.md) for the comprehensive project plan and
+> [TODO.md](../TODO.md) for the actionable task list.
 
-- Use of GitHub Copilot CLI
-- Usability and User Experience
-- Originality and Creativity
+Design principles:
 
-This design is optimized to be:
-
-- Judgeable quickly (one command demo, minimal dependencies)
-- Explicit about Copilot CLI usage (prompt ledger artifacts)
-- Safe by default (dry-run, allowlists)
-- Buildable in a hackathon timeframe
+- **Autonomous development** — ReviewCat builds itself using Copilot CLI agents
+  orchestrated by a Director daemon (Agent 0).
+- **Copilot CLI SDK embedded** — The SDK powers both development agents and
+  runtime review personas.
+- **Safe by default** — Dry-run, allowlists, explicit opt-in for mutations.
+- **Two-part architecture** — `app/` (the product) and `dev/` (the meta-tooling).
+- **WSL-native** — Developed and tested on WSL/Linux with Copilot CLI.
 
 ## Problem statement
 
@@ -51,10 +52,11 @@ Hackathon goals:
 
 - Fully replacing human review.
 - Auto-merging changes by default.
-- A GUI-first product.
-- A mandatory Windows tray daemon.
+- Requiring external cloud services (everything runs locally).
+- Shipping without a UI (a minimal Electron window is part of the product).
 
-A tray app can be a later enhancement, but it increases judge friction and reduces the likelihood of a smooth evaluation.
+The UI is a lightweight Electron window providing settings, stats, and
+command-and-control — not a full GUI-first product.
 
 ## Target users
 
@@ -93,6 +95,8 @@ ReviewCat is a terminal-first CLI.
 - `reviewcat dev director`
   - Runs the DirectorDev workflow that coordinates Copilot CLI agents to build and improve the ReviewCat codebase itself.
   - This is the "self-building" mode.
+  - The Director runs as a persistent daemon with a heartbeat loop.
+  - See `PLAN.md §5` for heartbeat architecture.
 
 ### Output and artifacts
 
@@ -155,6 +159,11 @@ Judge-friendly behavior:
 
 ## Architecture (components, entities, systems)
 
+The repository is split into two top-level sections:
+
+- **`app/`** — The ReviewCat product (CLI, daemon, UI, runtime agents).
+- **`dev/`** — The development harness (Director daemon, role agents, build automation).
+
 To match an ECS-style separation and keep modules testable:
 
 - Components are pure data structures.
@@ -202,8 +211,11 @@ ReviewCat uses Copilot CLI as the analysis and generation engine.
 
 ### Invocation modes
 
-- Programmatic mode for deterministic persona runs.
-  - `copilot -p "..." ...`
+- **Embedded SDK mode** (primary) — The `@github/copilot` SDK is embedded
+  directly into the project, powering both development agents and runtime
+  review personas.
+- **CLI subprocess mode** (fallback) — Invoke `copilot -p "..."` as a
+  subprocess when SDK is unavailable.
 - Plan mode for complex end-to-end tasks (optional).
 
 ### Guardrails
@@ -228,119 +240,111 @@ This is critical for the hackathon:
 
 A core differentiator is that ReviewCat is designed to help build itself.
 
-The project includes a DirectorDev workflow that coordinates multiple Copilot CLI agents (roles) to handle typical software project responsibilities.
+The project includes a DirectorDev workflow that coordinates multiple Copilot
+CLI agents (roles) to handle typical software project responsibilities.
+All development tooling lives under `dev/`.
 
 ### Concept
 
-- A Director agent owns:
+- **Agent 0 (Director)** runs as a persistent daemon with a heartbeat loop
+  (see `PLAN.md §5`).
+- The Director owns:
   - scope control
-  - planning
-  - task decomposition
+  - planning and task decomposition
   - acceptance criteria
   - integration quality
+  - progress tracking
 - Specialized role agents execute sub-tasks:
-  - architecture, implementation, QA, docs, security, UX
+  - architect, implementer, QA, docs, security, code-review
 
 The Director recursively delegates until a feature is complete.
 
 ### How this maps to Copilot CLI features
 
-- Use custom agents (repository-level) for each role.
-- Use programmatic mode to run those agents in a repeatable way.
-- Use the Task agent pattern to run builds/tests in a controlled loop.
+- Custom agents are defined in `.github/agents/` (repository-level).
+- The embedded Copilot CLI SDK invokes agents programmatically.
+- The heartbeat daemon runs agents in a repeatable, auditable loop.
+- Record/replay mode enables deterministic testing without live Copilot calls.
 
-### DirectorDev loop
+### DirectorDev heartbeat loop
 
-For each backlog item:
+The Director daemon runs continuously with a configurable interval:
 
-1. Director writes or updates a spec (in `reviewcat_design/specs/`).
-2. Director assigns sub-tasks to role agents:
-   - Implementation agent: produce code changes.
-   - QA agent: add tests and ensure determinism.
-   - Docs agent: update README and examples.
-   - Security agent: check for dangerous defaults and data leaks.
-3. Director runs:
-   - build
-   - unit tests
-   - demo mode
-4. Director requests a code review from a Code-review agent.
-5. Director iterates until acceptance criteria are met.
+1. **Wake** — Heartbeat timer fires.
+2. **Check backlog** — Read `dev/plans/prd.json` and `dev/plans/progress.json`.
+3. **Pick task** — Select highest-priority incomplete item.
+4. **Load spec** — Read target spec from `docs/specs/`.
+5. **Decompose** — Create sub-tasks, assign to role agents.
+6. **Execute** — Run agents sequentially with checkpoints:
+   - Implementer: produce code changes.
+   - QA: add tests and ensure determinism.
+   - Docs: update README and examples.
+   - Security: check for dangerous defaults and data leaks.
+7. **Validate** — Run build + unit tests.
+8. **Review** — Code-review agent validates changes.
+9. **Record** — Write development audit bundle to `dev/audits/`.
+10. **Commit** — Structured commit with audit trail.
+11. **Sleep** — Wait for next heartbeat interval.
 
-Artifacts from DirectorDev are stored under `docs/audits/dev/` to mirror the runtime audit model.
+### Development audit artifacts
 
-### Deliverables for the hackathon post
+DirectorDev generates auditable evidence for every cycle:
 
-DirectorDev should generate a short bundle of evidence:
+- Prompt ledger (every Copilot CLI SDK call logged)
+- Before/after diffs
+- Build/test output logs
+- Agent output transcripts
 
-- a list of Copilot CLI prompts used to build the project
-- before/after diffs
-- the final demo run
+Artifacts are stored under `dev/audits/<audit_id>/`.
 
-## Implementation plan (do not miss steps)
+## Implementation plan
 
-This is the minimal complete path to a judgeable submission.
+> **Canonical plan:** See [PLAN.md](../PLAN.md) §9 for the phased plan
+> and [TODO.md](../TODO.md) for the full task list.
 
-### Phase 0: repository and build
+The implementation language is **TypeScript** (Node.js). The project uses the
+`@github/copilot` SDK embedded directly.
 
-- Choose implementation language and packaging.
-  - Recommendation: Go or Python for hackathon speed.
-  - Requirement: cross-platform, one-command demo.
-- Create a reproducible build:
-  - `./scripts/build.sh`
-  - `./scripts/test.sh`
+### Phase 0: Repository bootstrap and dev harness
 
-Acceptance:
+- Create `app/` and `dev/` directory structure.
+- Initialize TypeScript project.
+- Install Copilot CLI SDK.
+- Create Agent 0 heartbeat daemon skeleton.
+- Define agent profiles in `.github/agents/`.
 
-- A judge can build and run `reviewcat demo` successfully.
+### Phase 1: Director agent (Agent 0)
 
-### Phase 1: demo mode
+- Implement heartbeat loop with configurable interval.
+- Implement spec reader, task decomposition, agent execution.
+- Implement build/test validation, progress tracking, audit recording.
 
-- Bundle a deterministic sample diff.
-- Implement audit directory output.
-- Implement prompt ledger.
+### Phase 2: Core app skeleton
 
-Acceptance:
+- CLI frontend with command stubs.
+- Config, audit, prompt ledger components.
+- `reviewcat demo` with bundled sample diff.
 
-- `reviewcat demo` writes a complete audit with unified review and action plan.
+### Phase 3: Review pipeline
 
-### Phase 2: local review
+- RepoDiffSystem, CopilotRunnerSystem, PersonaReviewSystem, SynthesisSystem.
+- `reviewcat review` end-to-end.
 
-- Implement repo diff collection.
-- Implement persona loop.
-- Implement synthesis.
+### Phase 4: GitHub integration
 
-Acceptance:
+- GitHubOpsSystem, `reviewcat pr`, watch mode daemon.
 
-- `reviewcat review` works on a real repo diff.
+### Phase 5: Patch automation
 
-### Phase 3: PR review
+- PatchApplySystem, `reviewcat fix`.
 
-- Implement PR diff fetch via `gh`.
-- Optionally post unified comment.
+### Phase 6: End-user UI
 
-Acceptance:
+- Electron window: dashboard, settings, stats, audit log, daemon controls.
 
-- With `gh auth login` done, `reviewcat pr <url> --comment` posts a unified comment.
+### Phase 7: Polish and distribution
 
-### Phase 4: optional fix branch
-
-- Generate safe patches.
-- Apply patches behind explicit flags.
-- Run tests.
-- Open PR.
-
-Acceptance:
-
-- A fix branch can be created without breaking the repo.
-
-### Phase 5: DirectorDev
-
-- Add role agent definitions.
-- Add a small script to run the DirectorDev loop on one spec.
-
-Acceptance:
-
-- DirectorDev can complete a small feature end-to-end.
+- Packaging, error handling, logging, documentation.
 
 ## Testing strategy
 
@@ -377,16 +381,16 @@ This ensures the project remains testable even if Copilot CLI is unavailable.
   - no-auth demo mode
   - minimal dependencies
 
-## Submission checklist
+## Distribution checklist
 
 - Repo contains:
-  - clear README with "How to test" steps
-  - demo mode
-  - sample output screenshots
-  - prompt ledger evidence
+  - Clear README with quick start and installation steps
+  - Demo mode (`reviewcat demo`)
+  - Sample output artifacts
+  - Prompt ledger evidence of autonomous development
+  - Comprehensive specs in `docs/specs/`
 
-- DEV post includes:
-  - what you built
-  - how to run
-  - how Copilot CLI was used (include prompt excerpts)
-  - testing credentials only if needed (prefer no-auth demo)
+- Package includes:
+  - npm-installable CLI (`npm install -g reviewcat`)
+  - Electron desktop app (optional download)
+  - Default config template (`reviewcat.toml`)
