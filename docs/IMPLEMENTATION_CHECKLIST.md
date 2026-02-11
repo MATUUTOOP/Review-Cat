@@ -79,13 +79,19 @@ sequential.
 
 ## Phase 4: GitHub Integration
 
-- [ ] `GitHubOpsSystem` via `gh` CLI:
-  - [ ] fetch PR diff (`gh pr diff`)
-  - [ ] post unified comment (`gh pr comment`)
-  - [ ] create issues (`gh issue create`)
-  - [ ] handle rate limits, token validation
+- [ ] `GitHubOpsSystem` via **GitHub MCP Server** (primary) with `gh` CLI fallback:
+  - [ ] Create issues from review findings (via MCP `create_issue`)
+  - [ ] Create PRs from coding agent fixes (via MCP `create_pull_request`)
+  - [ ] Post unified review comments on PRs (via MCP)
+  - [ ] Read PR diffs and issue descriptions (via MCP)
+  - [ ] Handle rate limits, token validation
+  - [ ] Fallback to `gh` CLI if MCP unavailable
 - [ ] `reviewcat pr <PR#>`.
-- [ ] `reviewcat watch` — daemon mode (poll interval, PID file, graceful shutdown).
+- [ ] `reviewcat watch` — daemon mode:
+  - [ ] Configurable poll interval
+  - [ ] PID file + graceful shutdown
+  - [ ] Circular: review → issues → coding agent → PR → merge → review
+- [ ] Support remote user repos (not just self-review).
 
 ## Phase 5: Patch Automation
 

@@ -2,9 +2,12 @@
 
 ## Overview
 
-`CopilotRunnerSystem` is responsible for invoking GitHub Copilot CLI and capturing outputs in a reproducible way.
+`CopilotRunnerSystem` is responsible for invoking GitHub Copilot CLI and
+capturing outputs in a reproducible way. It is the boundary between ReviewCat
+logic and the external agent.
 
-It is the boundary between ReviewCat logic and the external agent.
+The system supports GitHub MCP Server configuration so that agents invoked
+through it can access GitHub tools (issues, PRs, comments) natively.
 
 ## Requirements
 
@@ -13,6 +16,8 @@ It is the boundary between ReviewCat logic and the external agent.
 3. Must write prompt ledger entries for each invocation.
 4. Must support record/replay mode for tests.
 5. Must enforce tool allow/deny policy.
+6. Must support `--mcp-config` for GitHub MCP Server integration.
+7. Must support agent profile references (`@dev/agents/<role>.md`).
 
 ## Interfaces
 
@@ -20,6 +25,8 @@ Inputs:
 
 - `PromptRecord`
 - policy (allow/deny lists)
+- MCP config path (optional, for GitHub MCP Server)
+- agent profile path (optional, e.g., `@dev/agents/coder.md`)
 
 Outputs:
 
@@ -49,8 +56,10 @@ Ledger files:
 - Copilot CLI not installed.
 - Not authenticated.
 - Copilot CLI prompts for trust confirmation.
+- GitHub MCP Server not configured or unavailable.
 
 ## Non-functional constraints
 
 - Never print tokens.
 - Timeouts for long-running calls.
+- MCP config path must not contain secrets (env vars only).

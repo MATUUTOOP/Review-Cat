@@ -19,6 +19,7 @@ Commands:
 - `pr`
 - `fix`
 - `watch`
+- `ui`
 - `dev director`
 
 Common flags:
