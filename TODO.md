@@ -18,13 +18,27 @@
 
 ### 0.1 — Environment & Toolchain (prereqs before anything else)
 
+Run `dev/scripts/setup.sh` to automate these, or do them manually:
+
 - [ ] Install/verify **Copilot CLI**: `copilot --version` (requires GitHub Copilot subscription)
 - [ ] Install **gh CLI**: `sudo apt install gh` → `gh --version`
 - [ ] Authenticate gh CLI: `gh auth login` (select HTTPS, `repo` scope, confirm with browser)
 - [ ] Install **jq**: `sudo apt install jq` → `jq --version`
 - [ ] Verify **cmake**: `cmake --version` (already installed)
 - [ ] Verify **g++**: `g++ --version` (already installed)
-- [ ] Verify **docker**: `docker --version` (already installed — needed for GitHub MCP Server)
+- [ ] Install **github-mcp-server** native binary:
+  ```bash
+  # Option A: Download pre-built binary from GitHub Releases
+  GH_MCP_VERSION="v0.30.3"  # check for latest
+  curl -Lo /usr/local/bin/github-mcp-server \
+    "https://github.com/github/github-mcp-server/releases/download/${GH_MCP_VERSION}/github-mcp-server-linux-amd64"
+  chmod +x /usr/local/bin/github-mcp-server
+
+  # Option B: Build from source (requires Go 1.21+)
+  git clone https://github.com/github/github-mcp-server.git /tmp/github-mcp-server
+  cd /tmp/github-mcp-server && go build -o /usr/local/bin/github-mcp-server ./cmd/github-mcp-server
+  ```
+- [ ] Verify MCP server: `github-mcp-server --help`
 - [ ] Create a GitHub **Personal Access Token** (PAT) with `repo` scope
 - [ ] Export PAT: `export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_...` (add to `~/.bashrc`)
 - [ ] Verify Copilot CLI works: `copilot -p "Say hello and confirm you can see this prompt"`
@@ -32,19 +46,14 @@
 
 ### 0.2 — GitHub MCP Server Configuration (gives agents GitHub superpowers)
 
-- [ ] Pull MCP Server Docker image: `docker pull ghcr.io/github/github-mcp-server`
+- [ ] Verify `github-mcp-server` is installed (from setup.sh)
 - [ ] Create `dev/mcp/github-mcp.json` — MCP config file:
   ```json
   {
     "mcpServers": {
       "github": {
-        "command": "docker",
-        "args": [
-          "run", "-i", "--rm",
-          "-e", "GITHUB_PERSONAL_ACCESS_TOKEN",
-          "ghcr.io/github/github-mcp-server",
-          "--toolsets", "issues,pull_requests,repos,git"
-        ],
+        "command": "github-mcp-server",
+        "args": ["stdio", "--toolsets", "issues,pull_requests,repos,git"],
         "env": {
           "GITHUB_PERSONAL_ACCESS_TOKEN": ""
         }
@@ -52,6 +61,9 @@
     }
   }
   ```
+  > **Note:** The native `github-mcp-server` binary runs as a stdio process —
+  > no Docker required. The binary is lightweight (~30MB) and starts instantly.
+  > Alternatively, use the remote server: `{"type": "http", "url": "https://api.githubcopilot.com/mcp/"}`
 - [ ] Smoke-test MCP read: `copilot -p "List open issues on p3nGu1nZz/Review-Cat using GitHub MCP tools" --mcp-config dev/mcp/github-mcp.json`
 - [ ] Smoke-test MCP write: `copilot -p "Create a GitHub Issue titled '[test] MCP smoke test' with body 'Delete me' on p3nGu1nZz/Review-Cat" --mcp-config dev/mcp/github-mcp.json`
 - [ ] Close/delete the smoke-test issue
@@ -72,6 +84,7 @@
 - [ ] Create `app/` hierarchy: `src/core/`, `src/cli/`, `src/daemon/`, `src/ui/`, `src/copilot/`, `include/`, `tests/`, `config/`, `scripts/`
 - [ ] Create `dev/` hierarchy: `agents/`, `harness/`, `plans/`, `prompts/`, `scripts/`, `audits/`, `mcp/`
 - [ ] Create `.github/agents/` for Copilot CLI repo-level agent profiles
+- [ ] Create `dev/harness/log.sh` — shared logging functions for all bash scripts
 - [ ] Create `.gitignore`:
   ```
   build/
@@ -236,13 +249,25 @@ With them, you have a self-driving development daemon.
     7. `sleep $INTERVAL`
   - [ ] Log each heartbeat iteration to `dev/audits/director.log`
 
-### 0.8 — Bootstrap Script (one command to set everything up)
+### 0.8 — Setup Script (install system prereqs — run once per machine)
 
-- [ ] Write `dev/scripts/bootstrap.sh` — One-shot setup:
-  - [ ] Verify all prereqs: `copilot`, `gh`, `jq`, `cmake`, `g++`, `docker`
+- [ ] Write `dev/scripts/setup.sh` — System prerequisite installer:
+  - [ ] Check and install `gh` CLI (via `apt` or official installer)
+  - [ ] Check and install `jq` (via `apt`)
+  - [ ] Check and install `github-mcp-server` binary (download from GitHub Releases)
+  - [ ] Verify `copilot` CLI is available
+  - [ ] Verify `cmake` and `g++` are available
+  - [ ] Prompt for `GITHUB_PERSONAL_ACCESS_TOKEN` if unset
+  - [ ] Run `gh auth login` if not authenticated
+  - [ ] All installs are idempotent — safe to re-run
+  - [ ] Print summary of installed/verified tools with versions
+
+### 0.9 — Bootstrap Script (initialize project — run once per clone)
+
+- [ ] Write `dev/scripts/bootstrap.sh` — Project initialization:
+  - [ ] Verify setup.sh was run (check for all required tools)
   - [ ] Verify `GITHUB_PERSONAL_ACCESS_TOKEN` is set
   - [ ] Verify gh is authenticated: `gh auth status`
-  - [ ] Pull MCP Server image: `docker pull ghcr.io/github/github-mcp-server`
   - [ ] Create `dev/mcp/github-mcp.json` if missing
   - [ ] Create label taxonomy on repo (idempotent — skip existing labels)
   - [ ] Create `dev/plans/prd.json` with initial bootstrap tasks
@@ -251,7 +276,7 @@ With them, you have a self-driving development daemon.
   - [ ] Run `dev/harness/review-self.sh` to seed first issues
   - [ ] Print: "Bootstrap complete. Run: ./dev/harness/director.sh"
 
-### 0.9 — Initial Backlog & First Issues
+### 0.10 — Initial Backlog & First Issues
 
 - [ ] Create `dev/plans/prd.json` — Initial task backlog mapping Phase 0 items
 - [ ] Create seed GitHub Issues manually or via bootstrap:
@@ -261,11 +286,12 @@ With them, you have a self-driving development daemon.
   - Issue: "Write first Catch2 unit test" → `agent-task`, `testing`
   - Issue: "Implement CopilotRunnerSystem subprocess wrapper" → `agent-task`, `architecture`
 
-### 0.10 — End-to-End Smoke Test (Director self-codes for the first time)
+### 0.11 — End-to-End Smoke Test (Director self-codes for the first time)
 
 This is the acceptance test for Phase 0. If this passes, you have a self-coding
 system equivalent to running Claude Code in an autonomous loop.
 
+- [ ] Run `./dev/scripts/setup.sh` — verify all tools installed
 - [ ] Run `./dev/scripts/bootstrap.sh` — verify clean exit
 - [ ] Run `./dev/harness/director.sh` — let it execute **one full heartbeat**
 - [ ] Verify: Director read open issues (printed to log)
@@ -378,16 +404,23 @@ system equivalent to running Claude Code in an autonomous loop.
 
 - [ ] Set up Dear ImGui with SDL2 or GLFW backend in `app/src/ui/`
 - [ ] Dashboard panel — active review status, recent findings, daemon health
+- [ ] **Agent Status panel** — live view of:
+  - [ ] Active agents and their current tasks
+  - [ ] Worktree status (branch, issue, progress)
+  - [ ] Worker slot utilization (`active / MAX_WORKERS`)
+  - [ ] Heartbeat health indicator (time since last beat)
+  - [ ] Per-agent retry counts and error states
 - [ ] Settings panel — load/save `reviewcat.toml`
 - [ ] Stats panel — review counts, severity breakdown, persona activity
 - [ ] Audit Log panel — browse past runs, view findings
+- [ ] **Log Viewer panel** — live scrolling log with level filtering (spdlog sink)
 - [ ] Controls panel — start/stop daemon, trigger manual review
 - [ ] `reviewcat ui` subcommand
 
 ## Phase 7: Polish & Distribution
 
 - [ ] Single static binary via static linking
-- [ ] Comprehensive error messages and `spdlog`-based logging
+- [ ] Comprehensive error messages (spdlog logging active from Phase 0)
 - [ ] End-user documentation (`docs/USAGE.md`, `docs/CONFIGURATION.md`)
 - [ ] CI/CD pipeline (GitHub Actions): CMake build, Catch2 tests, static analysis
 - [ ] README: build instructions, quick start, screenshots
@@ -400,8 +433,22 @@ system equivalent to running Claude Code in an autonomous loop.
 - [ ] Set up `clang-tidy` for static analysis
 - [ ] Add `compile_commands.json` generation in CMake
 - [ ] Document WSL prerequisites (Ubuntu packages, Copilot CLI, GitHub MCP)
-- [ ] Configure GitHub MCP Server for dev agents (document in `dev/scripts/`)
+- [ ] Configure GitHub MCP Server for dev agents (documented in `dev/scripts/`)
 - [ ] Security: never log or store tokens; redact sensitive paths in audits
+- [ ] **Logging infrastructure:**
+  - [ ] Dev harness: timestamped log functions in `dev/harness/log.sh`
+  - [ ] Dev harness: all scripts source `log.sh` for consistent output
+  - [ ] Dev harness: Director writes to `dev/audits/director.log`
+  - [ ] C++ app: integrate spdlog (console + rotating file sinks)
+  - [ ] C++ app: log file at `~/.reviewcat/reviewcat.log`
+  - [ ] C++ app: `--log-level` CLI flag (trace/debug/info/warn/error)
+  - [ ] C++ app: spdlog ImGui sink for Log Viewer panel
+- [ ] **Test infrastructure:**
+  - [ ] `scripts/test.sh` runs Catch2 binary + reports results
+  - [ ] Record/replay fixtures for Copilot CLI responses
+  - [ ] Golden file tests for demo output
+  - [ ] Integration test for Director single-heartbeat
+  - [ ] Test coverage reporting (gcov/lcov)
 
 ---
 
@@ -413,5 +460,7 @@ system equivalent to running Claude Code in an autonomous loop.
 - Phase 1 enables the **self-improvement loop** — ReviewCat reviews and fixes itself.
 - All agent work is tracked via **GitHub Issues and PRs** on `p3nGu1nZz/Review-Cat`.
 - Agents run in parallel via **git worktrees** in the parent directory.
-- The `dev/` agents use **GitHub MCP Server** for issue/PR operations.
+- The `dev/` agents use **GitHub MCP Server** (native binary, no Docker) for issue/PR operations.
+- Setup script (`dev/scripts/setup.sh`) installs system prereqs.
+- Bootstrap script (`dev/scripts/bootstrap.sh`) initializes the project.
 - Mark items `[x]` as they are completed; primary tracking is via GitHub Issues.

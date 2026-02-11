@@ -16,6 +16,7 @@ Specs are organized by category.
   - `DirectorRuntimeSystem` — end-to-end review/fix pipeline orchestration
   - `WorktreeSystem` — git worktree lifecycle for parallel agents
   - `SelfReviewSystem` — circular self-review and issue creation
+  - `LoggingSystem` — structured logging (spdlog + bash) for all components
 - `agents/` — Copilot CLI agent definitions and DirectorDev orchestration:
   - `DirectorDevAgent` — heartbeat daemon, worktree management, self-improvement
   - `RoleAgents` — agent roster (implementer, coder, QA, docs, security, etc.)

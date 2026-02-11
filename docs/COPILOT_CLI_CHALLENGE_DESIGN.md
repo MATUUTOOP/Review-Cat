@@ -247,8 +247,8 @@ the **GitHub MCP Server** providing GitHub API capabilities.
   access to GitHub tools (create_issue, create_pull_request, add_issue_comment,
   list_issues, get_pull_request, etc.).
 - Plan mode for complex end-to-end tasks (optional).
-- No SDK or npm dependency — Copilot CLI + GitHub MCP Server are the only
-  external requirements.
+- No SDK or npm dependency — Copilot CLI + GitHub MCP Server (native binary
+  or remote) are the only external requirements.
 
 ### GitHub MCP Server configuration
 
@@ -257,7 +257,8 @@ agents to interact with GitHub:
 
 - **Toolsets:** `issues`, `pull_requests`, `repos`, `git`
 - **Authentication:** `GITHUB_PERSONAL_ACCESS_TOKEN` env var
-- **Launch:** Docker (`ghcr.io/github/github-mcp-server`) or binary
+- **Launch:** Native binary (`github-mcp-server stdio`) or remote server
+  (`https://api.githubcopilot.com/mcp/`) — no Docker required
 - **Agent integration:** `copilot -p "..." --mcp-config github-mcp.json`
 
 This replaces raw `gh` CLI for development agents. The `gh` CLI remains as
@@ -379,7 +380,7 @@ Multiple agents work simultaneously in isolated git worktrees:
 
 - Custom agents are defined in `.github/agents/` (repository-level).
 - Copilot CLI is invoked via subprocess (`copilot -p`) from bash scripts.
-- GitHub MCP Server is configured via `--mcp-config` for GitHub API access.
+- GitHub MCP Server is configured via `--mcp-config` (native binary or remote).
 - The heartbeat daemon runs agents in a repeatable, auditable loop.
 - Record/replay mode enables deterministic testing without live Copilot calls.
 
@@ -407,12 +408,18 @@ To cold-start the Director for the first time:
 
 ```bash
 cd Review-Cat
-./dev/scripts/bootstrap.sh    # Verify prereqs, configure MCP, create issues
+./dev/scripts/setup.sh        # Install system prereqs (gh, jq, github-mcp-server)
+./dev/scripts/bootstrap.sh    # Configure MCP, create issues, verify build
 ./dev/harness/director.sh     # Start the Director daemon (loops indefinitely)
 ```
 
+`setup.sh` installs:
+- gh CLI, jq, github-mcp-server binary (from GitHub Releases)
+- Verifies copilot, cmake, g++ are available
+- Prompts for GITHUB_PERSONAL_ACCESS_TOKEN if unset
+
 `bootstrap.sh` performs:
-- Verify prerequisites (copilot, gh, jq, cmake, g++)
+- Verify setup.sh prerequisites are met
 - Configure GitHub MCP Server for Copilot CLI
 - Create `dev/plans/prd.json` with initial bootstrap tasks
 - Create initial GitHub Issues for Phase 0 tasks
@@ -442,8 +449,10 @@ scripts**. Copilot CLI + GitHub MCP Server are the primary external deps.
 ### Phase 0: Bootstrap & dev harness (PRIORITY)
 
 - Create `app/` and `dev/` directory structure.
-- Write `dev/scripts/bootstrap.sh` (verify prereqs, configure GitHub MCP,
-  create initial issues, set up labels).
+- Write `dev/scripts/setup.sh` (install system prereqs: gh, jq,
+  github-mcp-server binary).
+- Write `dev/scripts/bootstrap.sh` (configure MCP, create initial issues,
+  set up labels, verify build).
 - Write Director daemon, run-cycle, worktree, review-self, and audit scripts.
 - Set up CMake build system for C++ project.
 - Define agent profiles in `.github/agents/` and `dev/agents/`.
@@ -479,12 +488,13 @@ scripts**. Copilot CLI + GitHub MCP Server are the primary external deps.
 
 ### Phase 6: End-user UI
 
-- Dear ImGui window (SDL2/GLFW): dashboard, settings, stats, audit log,
-  daemon controls.
+- Dear ImGui window (SDL2/GLFW): dashboard, agent status panel, settings,
+  stats, audit log, log viewer, daemon controls.
 
 ### Phase 7: Polish and distribution
 
-- Single static binary, error handling, spdlog logging, documentation.
+- Single static binary, error handling, spdlog logging (active from Phase 0),
+  documentation.
 
 ## Testing strategy
 
@@ -521,7 +531,8 @@ Server are unavailable.
 - Copilot CLI request quotas → caching per chunk/persona; record/replay tests
 - Worktree conflicts → branch naming conventions; label-based claiming
 - Infinite trivial self-review issues → severity threshold; dedup against open issues
-- MCP Server unavailability → fallback to `gh` CLI; graceful degradation
+- MCP Server unavailability → three deployment options (remote, binary, source);
+  fallback to `gh` CLI; graceful degradation
 - Parallel agent race conditions → issue claiming via labels; branch naming
 - Agent produces bad code → build/test validation gate; PR review before merge
 

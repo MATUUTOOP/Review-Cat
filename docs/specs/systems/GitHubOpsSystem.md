@@ -72,3 +72,6 @@ This system serves two distinct contexts:
 - No token storage in code; use environment variables.
 - Redact sensitive content before posting.
 - `GITHUB_PERSONAL_ACCESS_TOKEN` for MCP; `gh auth` for CLI fallback.
+- MCP Server runs as native `github-mcp-server stdio` binary (no Docker).
+- Three deployment options: remote server, pre-built binary, build from source.
+  See PLAN.md §3.1.

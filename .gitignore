@@ -39,3 +39,10 @@
 
 # debug information files
 *.dwo
+
+# ReviewCat project-specific
+build/
+Review-Cat-agent-*/
+dev/audits/*/
+.env
+*.log

@@ -10,7 +10,7 @@ sequential.
 
 - [ ] Create `app/` directory hierarchy:
   - [ ] `app/src/core/`, `app/src/cli/`, `app/src/daemon/`, `app/src/ui/`, `app/src/copilot/`
-  - [ ] `app/include/`, `app/tests/`, `app/config/`, `app/scripts/`
+  - [ ] `app/include/`, `app/tests/`, `app/config/`
   - [ ] `app/CMakeLists.txt` with targets: `reviewcat` binary, `reviewcat_core` lib, `reviewcat_tests`
 - [ ] Create `dev/` directory hierarchy:
   - [ ] `dev/agents/`, `dev/harness/`, `dev/plans/`, `dev/prompts/`, `dev/scripts/`, `dev/audits/`
@@ -20,9 +20,11 @@ sequential.
 - [ ] Write `scripts/build.sh` — CMake configure + build.
 - [ ] Write `scripts/test.sh` — run Catch2 test binary.
 - [ ] Write `scripts/clean.sh` — remove build artifacts.
+- [ ] Write `dev/harness/log.sh` — shared logging functions for bash scripts.
 - [ ] Write `dev/harness/director.sh` — heartbeat daemon skeleton.
 - [ ] Write `dev/harness/run-cycle.sh` — agent cycle orchestration.
-- [ ] Write `dev/scripts/bootstrap.sh` — one-shot dev env setup.
+- [ ] Write `dev/scripts/setup.sh` — install system prereqs (gh, jq, github-mcp-server).
+- [ ] Write `dev/scripts/bootstrap.sh` — project initialization (MCP config, labels, issues).
 - [ ] Create agent profiles in `.github/agents/` and `dev/agents/`.
 - [ ] Create `dev/plans/prd.json` initial backlog.
 - [ ] Add a minimal `reviewcat --help` with command stubs.
@@ -105,19 +107,21 @@ sequential.
 
 - [ ] Set up Dear ImGui with SDL2 or GLFW backend in `app/src/ui/`.
 - [ ] Dashboard panel — active review status, recent findings, daemon health.
+- [ ] **Agent Status panel** — live agent/worktree/heartbeat status.
 - [ ] Settings panel — load/save `reviewcat.toml`:
   - [ ] Copilot credentials, GitHub access token, target repo, base branch
   - [ ] Review interval, personas enabled/disabled, auto-comment, auto-fix
   - [ ] Redaction rules
 - [ ] Stats panel — review counts, severity breakdown, persona activity.
 - [ ] Audit Log panel — browse past runs, view findings.
+- [ ] **Log Viewer panel** — live scrolling log output with level filtering.
 - [ ] Controls panel — start/stop daemon, trigger manual review.
 - [ ] `reviewcat ui` subcommand to launch the window.
 
 ## Phase 7: Polish & Distribution
 
 - [ ] Produce single static binary (`reviewcat`) via static linking.
-- [ ] Comprehensive error messages and `spdlog`-based logging.
+- [ ] Comprehensive error messages (spdlog logging active from Phase 0).
 - [ ] End-user documentation (`docs/USAGE.md`, `docs/CONFIGURATION.md`).
 - [ ] Man page or `--help` with detailed subcommand docs.
 - [ ] CI/CD pipeline (GitHub Actions): CMake build, Catch2 tests, static analysis.

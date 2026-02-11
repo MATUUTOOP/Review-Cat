@@ -71,6 +71,7 @@ No C++ compilation is required for the dev harness to operate.
   - `summary.md` — Director's completion note
 
 Audit bundles are indexed in `dev/audits/index.json`.
+The Director also logs each heartbeat to `dev/audits/director.log`.
 
 ## Orchestration Algorithm
 
@@ -176,7 +177,8 @@ To cold-start the Director for the first time:
 
 ```bash
 cd Review-Cat
-./dev/scripts/bootstrap.sh    # Verify prereqs, configure MCP, create issues
+./dev/scripts/setup.sh        # Install prereqs (gh, jq, github-mcp-server)
+./dev/scripts/bootstrap.sh    # Configure MCP, create issues, verify build
 ./dev/harness/director.sh     # Start the Director daemon (loops indefinitely)
 ```
 

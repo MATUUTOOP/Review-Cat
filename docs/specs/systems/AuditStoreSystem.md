@@ -4,12 +4,18 @@
 
 `AuditStoreSystem` writes audit artifacts to disk and maintains indexes.
 
+The base path is context-dependent:
+
+- **Runtime app** (end-user reviews): `docs/audits/<audit_id>/`
+- **Dev harness** (self-improvement cycles): `dev/audits/<audit_id>/`
+
 ## Requirements
 
-1. Must create `docs/audits/<audit_id>/`.
+1. Must create `<base_path>/<audit_id>/`.
 2. Must write `audit.json`, persona outputs, unified outputs, and ledger.
-3. Must update `docs/audits/index.json`.
+3. Must update `<base_path>/index.json`.
 4. Must support archiving older audits.
+5. Must log all write operations via LoggingSystem.
 
 ## Interfaces
 

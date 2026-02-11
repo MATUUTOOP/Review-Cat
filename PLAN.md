@@ -62,7 +62,6 @@ Review-Cat/
 │   ├── include/            # Public C++ headers
 │   ├── tests/              # C++ test suite (Catch2)
 │   ├── config/             # Default configs, persona templates
-│   ├── scripts/            # Build, test, package shell scripts
 │   └── CMakeLists.txt      # App build system
 │
 ├── dev/                    # The meta-tooling — what builds the product
@@ -75,8 +74,10 @@ Review-Cat/
 │   │   └── record-audit.sh # Audit recording helper
 │   ├── plans/              # PRD items, task graphs, progress tracking
 │   ├── prompts/            # Prompt templates for dev agents
-│   ├── scripts/            # Dev harness bootstrap and utility scripts
-│   │   └── bootstrap.sh    # One-shot dev environment setup
+│   ├── mcp/               # MCP config files (github-mcp.json)
+│   ├── scripts/            # Dev harness setup and utility scripts
+│   │   ├── setup.sh        # Install system prerequisites
+│   │   └── bootstrap.sh    # One-shot project initialization
 │   └── audits/             # Development audit bundles
 │
 ├── .github/
@@ -140,13 +141,14 @@ entirely of **shell scripts** and **Copilot CLI agent profiles**:
 | JSON | **nlohmann/json** | De facto C++ JSON library |
 | Config | **TOML** (`reviewcat.toml`) | Human-readable; parsed with `toml++` |
 | Testing | **Catch2** | Mature, header-only C++ test framework |
+| Logging | **spdlog** | Fast, header-only C++ logging; structured dev harness logs |
 | Package manager | **vcpkg** or git submodules | Dependency management for C++ libs |
 | Distribution | Single static binary + shell | No runtime dependencies for end users |
 
 ### 3.1. GitHub MCP Server
 
 The **GitHub MCP Server** (`github/github-mcp-server`) provides MCP tools that
-Copilot CLI agents can use to interact with GitHub:
+Copilot CLI agents can use to interact with GitHub.
 
 - **Toolsets used:** `issues`, `pull_requests`, `repos`, `git`
 - **Key capabilities:**
@@ -157,11 +159,64 @@ Copilot CLI agents can use to interact with GitHub:
 - **Integration:** Copilot CLI agents access GitHub MCP tools natively when
   the MCP server is configured. Agents can `create_issue`, `create_pull_request`,
   `add_issue_comment`, etc. directly in their prompt context.
-- **Configuration:** Agents include `--mcp-config` pointing to the GitHub MCP
-  server, or the server is configured globally for the Copilot CLI session.
+
+**Deployment options (lightweight — no Docker required):**
+
+| Option | Method | Best for |
+|--------|--------|----------|
+| **Remote server** (preferred) | `https://api.githubcopilot.com/mcp/` | Zero install; HTTP-based; always up-to-date |
+| **Pre-built binary** | Download from [GitHub Releases](https://github.com/github/github-mcp-server/releases) | Offline use; single Go binary; no build step |
+| **Build from source** | `go build ./cmd/github-mcp-server` | Custom patches; development |
+
+**MCP config for native binary (`dev/mcp/github-mcp.json`):**
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "/usr/local/bin/github-mcp-server",
+      "args": ["stdio"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": ""
+      }
+    }
+  }
+}
+```
+
+**MCP config for remote server:**
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    }
+  }
+}
+```
+
+The native binary is launched with `github-mcp-server stdio` and communicates
+over stdin/stdout. Toolsets can be filtered via `--toolsets issues,pull_requests,repos,git`
+or the `GITHUB_TOOLSETS` environment variable.
 
 This replaces the previous `gh` CLI approach for development agents, though
 `gh` CLI remains available as a fallback and for the C++ runtime app.
+
+### 3.2. Logging Strategy
+
+Logging is split into two layers:
+
+1. **Dev harness logging** (bash) — Structured log output to
+   `dev/audits/director.log` and per-cycle logs. Uses `tee` and timestamped
+   `printf` statements. Log levels: `INFO`, `WARN`, `ERROR`.
+2. **Runtime app logging** (C++) — `spdlog` with console + rotating file sinks.
+   Log file at `~/.reviewcat/reviewcat.log`. Configurable log level via
+   `reviewcat.toml` or `--log-level` CLI flag.
+
+All logs follow the format: `[YYYY-MM-DD HH:MM:SS] [LEVEL] [component] message`.
+Tokens and secrets are never logged.
 
 ## 4. Agent Architecture
 
@@ -484,25 +539,41 @@ Agents communicate through GitHub's native features:
 - **Label-based claiming** — Agents claim issues before starting work to avoid
   duplicate effort across parallel workers.
 
-### 5.7. Bootstrap Sequence
+### 5.7. Setup & Bootstrap Sequence
 
-To cold-start the Director for the first time:
+The cold-start process is split into two scripts:
+
+1. **`dev/scripts/setup.sh`** — Installs system prerequisites (run once per machine).
+2. **`dev/scripts/bootstrap.sh`** — Initializes the project (run once per clone).
 
 ```bash
 # 1. Clone and enter the repo
 cd Review-Cat
 
-# 2. Bootstrap the dev harness
+# 2. Install system prerequisites
+./dev/scripts/setup.sh
+# This script:
+#   - Installs gh CLI (if missing)
+#   - Installs jq (if missing)
+#   - Downloads github-mcp-server binary from GitHub Releases (if missing)
+#   - Verifies: copilot, gh, jq, cmake, g++, github-mcp-server
+#   - Prompts for GITHUB_PERSONAL_ACCESS_TOKEN if unset
+#   - Runs gh auth login if not authenticated
+#   - All installs are idempotent — safe to re-run
+
+# 3. Bootstrap the project
 ./dev/scripts/bootstrap.sh
 # This script:
-#   - Verifies prerequisites (copilot, gh, jq, cmake, g++)
-#   - Configures GitHub MCP Server for Copilot CLI
+#   - Verifies setup.sh was run (checks for all tools)
+#   - Creates dev/mcp/github-mcp.json MCP config
 #   - Creates dev/plans/prd.json with initial bootstrap tasks
+#   - Sets up label taxonomy on the repo (agent-task, etc.)
 #   - Creates initial GitHub Issues for Phase 0 tasks
-#   - Sets up labels on the repo (agent-task, agent-claimed, etc.)
+#   - Runs ./scripts/build.sh to verify C++ scaffold compiles
 #   - Runs initial self-review to seed first issues
+#   - Prints: "Bootstrap complete. Run: ./dev/harness/director.sh"
 
-# 3. Start the Director daemon
+# 4. Start the Director daemon
 ./dev/harness/director.sh
 # Director will:
 #   - Read open issues labeled 'agent-task'
@@ -520,11 +591,14 @@ cd Review-Cat
 A native window built with **Dear ImGui** (SDL2 or GLFW backend) provides:
 
 - **Dashboard** — Active review status, recent findings, daemon health.
+- **Agent Status** — Live view of active agents, worktree status, current task,
+  progress indicators, heartbeat health, worker slot utilization.
 - **Settings** — Copilot credentials, GitHub access token, target repo, persona
   selection, review interval, notification preferences.
 - **Stats** — Review counts, finding trends, persona breakdown, agent uptime.
 - **Agent Personas** — Enable/disable personas, adjust severity thresholds.
 - **Audit Log** — Browse past review runs and their artifacts.
+- **Log Viewer** — Live scrolling log output (spdlog sink) with level filtering.
 - **Controls** — Start/stop daemon, trigger manual review, open audit directory.
 
 The UI is compiled into the `reviewcat` binary. Running `reviewcat ui` opens the
@@ -646,8 +720,10 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
 
 ### Phase 0: Bootstrap & Dev Harness (PRIORITY — Get Director Running)
 - Create `app/` and `dev/` directory structure.
-- Write `dev/scripts/bootstrap.sh` (verify prereqs, configure GitHub MCP,
-  create initial issues, set up labels).
+- Write `dev/scripts/setup.sh` (install system prereqs: gh, jq,
+  github-mcp-server binary, verify toolchain).
+- Write `dev/scripts/bootstrap.sh` (configure MCP, create initial issues,
+  set up labels, verify build).
 - Write `dev/harness/director.sh` (heartbeat daemon with worktree management).
 - Write `dev/harness/run-cycle.sh` (agent cycle in worktree).
 - Write `dev/harness/worktree.sh` (create/teardown helpers).
@@ -703,7 +779,7 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
 
 ### Phase 7: Polish & Distribution
 - Produce single static binary (`reviewcat`).
-- Add comprehensive error handling and logging (`spdlog`).
+- Add comprehensive error handling (spdlog logging is active from Phase 0).
 - Write end-user documentation.
 - Set up CI/CD (GitHub Actions with CMake).
 
@@ -749,5 +825,5 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
 | WSL-specific issues | Test on WSL Ubuntu; document WSL prerequisites |
 | Worktree conflicts | Branch naming conventions; label-based claiming prevents duplicates |
 | Infinite loop of trivial issues | Severity threshold for auto-issue creation; dedup against existing open issues |
-| MCP Server availability | Fallback to `gh` CLI; graceful degradation if MCP unavailable |
+| MCP Server availability | Three deployment options (remote, binary, source); fallback to `gh` CLI |
 | Parallel agent race conditions | Issue claiming via labels; branch naming prevents collisions |
