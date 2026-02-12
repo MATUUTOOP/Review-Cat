@@ -69,8 +69,7 @@ apt_install() {
   sudo apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
-    ninja-build \
-    python3
+    ninja-build
 }
 
 missing=0

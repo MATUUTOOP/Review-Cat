@@ -23,7 +23,7 @@ this file focused on the current release.
 
 ### 0.1 — Environment & Toolchain (prereqs before anything else)
 
-Run `dev/scripts/setup.sh` to automate these, or do them manually:
+Run `scripts/setup.sh` to automate these, or do them manually:
 
 - [ ] Install/verify **Copilot CLI**: `copilot --version` (requires GitHub Copilot subscription)
 - [ ] Install **gh CLI**: `sudo apt install gh` → `gh --version`
@@ -305,7 +305,7 @@ interruptions (container restarts, transient failures) and coordinating
   - [ ] Stores **local cached state** only (never committed)
   - [ ] Used to detect first-run vs resume after restart
 
-- [ ] Write `dev/scripts/daemon.sh` — Supervisor daemon:
+- [ ] Write `scripts/daemon.sh` — Supervisor daemon:
   - [ ] Starts `dev/harness/director.sh` as a child process
   - [ ] Keep-alive: if Director exits unexpectedly, restart with backoff
   - [ ] Writes/updates `STATE.json` with last-seen heartbeat + current release context
@@ -354,7 +354,7 @@ interruptions (container restarts, transient failures) and coordinating
 
 ### 0.8 — Setup Script (install system prereqs — run once per machine)
 
-- [ ] Write `dev/scripts/setup.sh` — System prerequisite installer:
+- [ ] Write `scripts/setup.sh` — System prerequisite installer:
   - [ ] Check and install `gh` CLI (via `apt` or official installer)
   - [ ] Check and install `jq` (via `apt`)
   - [ ] Check and install `github-mcp-server` binary (download from GitHub Releases)
@@ -368,7 +368,7 @@ interruptions (container restarts, transient failures) and coordinating
 
 ### 0.9 — Bootstrap Script (initialize project — run once per clone)
 
-- [ ] Write `dev/scripts/bootstrap.sh` — Project initialization:
+- [ ] Write `scripts/bootstrap.sh` — Project initialization:
   - [ ] Verify setup.sh was run (check for all required tools)
   - [ ] Verify `GITHUB_PERSONAL_ACCESS_TOKEN` is set
   - [ ] Verify gh is authenticated: `gh auth status`
@@ -378,7 +378,7 @@ interruptions (container restarts, transient failures) and coordinating
   - [ ] Create initial GitHub Issues for remaining Phase 0 items
   - [ ] Run `./scripts/build.sh` to verify C++ scaffold compiles
   - [ ] Run `dev/harness/review-self.sh` to seed first issues
-  - [ ] Print: "Bootstrap complete. Run: ./dev/scripts/daemon.sh"
+  - [ ] Print: "Bootstrap complete. Run: ./scripts/daemon.sh"
 
 ### 0.10 — Initial Backlog & First Issues
 
@@ -395,9 +395,9 @@ interruptions (container restarts, transient failures) and coordinating
 This is the acceptance test for Phase 0. If this passes, you have a self-coding
 system equivalent to running Claude Code in an autonomous loop.
 
-- [ ] Run `./dev/scripts/setup.sh` — verify all tools installed
-- [ ] Run `./dev/scripts/bootstrap.sh` — verify clean exit
-- [ ] Run `./dev/scripts/daemon.sh` — let it execute **one full heartbeat** (supervisor + Director)
+- [ ] Run `./scripts/setup.sh` — verify all tools installed
+- [ ] Run `./scripts/bootstrap.sh` — verify clean exit
+- [ ] Run `./scripts/daemon.sh` — let it execute **one full heartbeat** (supervisor + Director)
 - [ ] Verify: Director read open issues (printed to log)
 - [ ] Verify: Director created a worktree for an issue
 - [ ] Verify: Copilot CLI agent was invoked in the worktree with `--allow-tools write`
@@ -542,7 +542,7 @@ system equivalent to running Claude Code in an autonomous loop.
 - [ ] Set up `clang-tidy` for static analysis
 - [ ] Add `compile_commands.json` generation in CMake
 - [ ] Document WSL prerequisites (Ubuntu packages, Copilot CLI, GitHub MCP)
-- [ ] Configure GitHub MCP Server for dev agents (documented in `dev/scripts/`)
+- [ ] Configure GitHub MCP Server for dev agents (documented in `scripts/`)
 - [ ] Security: never log or store tokens; redact sensitive paths in audits
 - [ ] **Logging infrastructure:**
   - [ ] Dev harness: timestamped log functions in `dev/harness/log.sh`
@@ -571,6 +571,6 @@ system equivalent to running Claude Code in an autonomous loop.
 - All agent work is tracked via **GitHub Issues and PRs** on `p3nGu1nZz/Review-Cat`.
 - Agents run in parallel via **worker containers** (shared image tag) + **git worktrees** (one worktree mounted per worker).
 - The `dev/` agents use **GitHub MCP Server** via either **remote MCP** (preferred) or a **native stdio binary** (host or container-bundled).
-- Setup script (`dev/scripts/setup.sh`) installs system prereqs.
-- Bootstrap script (`dev/scripts/bootstrap.sh`) initializes the project.
+- Setup script (`scripts/setup.sh`) installs system prereqs.
+- Bootstrap script (`scripts/bootstrap.sh`) initializes the project.
 - Mark items `[x]` as they are completed; primary tracking is via GitHub Issues.

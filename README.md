@@ -107,7 +107,7 @@ git clone https://github.com/<owner>/Review-Cat.git
 cd Review-Cat
 
 # Install system prereqs (gh, jq, github-mcp-server)
-./dev/scripts/setup.sh
+./scripts/setup.sh
 
 # Build
 ./scripts/build.sh
@@ -159,14 +159,8 @@ The development harness runs autonomously via the Director daemon (once the
 Phase 0 scaffold + scripts exist):
 
 ```bash
-# Install system prereqs
-./dev/scripts/setup.sh
-
-# Bootstrap dev environment
-./dev/scripts/bootstrap.sh
-
-# Start daemon supervisor + Director (Agent 0)
-./dev/scripts/daemon.sh
+# Verify local toolchain + scripts (and optionally run the unit gate)
+./scripts/setup.sh --run-gate
 ```
 
 The dev harness operates in **release cycles**:

@@ -42,6 +42,7 @@
 
 # ReviewCat project-specific
 build/
+externals/
 Review-Cat-agent-*/
 dev/audits/*/
 .env

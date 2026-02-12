@@ -273,7 +273,7 @@ built — they operate purely via Copilot CLI, bash, and GitHub MCP:
 
 | Agent | Role | How It Runs |
 |-------|------|-------------|
-| **Director (Agent 0)** | Orchestrator | `dev/scripts/daemon.sh` (recommended) → starts `dev/harness/director.sh` heartbeat loop |
+| **Director (Agent 0)** | Orchestrator | `scripts/daemon.sh` (recommended) → starts `dev/harness/director.sh` heartbeat loop |
 | **Architect** | Design reviewer | `copilot -p @.github/agents/architect.md "..."` |
 | **Implementer** | Code writer | `copilot -p @.github/agents/implementer.md "..."` in worktree |
 | **Coder** | Fix implementer | `copilot -p @.github/agents/coder.md "..."` in worktree |
@@ -649,39 +649,28 @@ escalate via `agent-blocked` with a clear next action.
 
 The cold-start process is split into two scripts:
 
-1. **`dev/scripts/setup.sh`** — Installs system prerequisites (run once per machine).
-2. **`dev/scripts/bootstrap.sh`** — Initializes the project (run once per clone).
+1. **`scripts/setup.sh`** — Verifies the local toolchain and prepares caches (run once per machine; safe to re-run).
+2. **`scripts/bootstrap.sh`** — Project initialization (planned; run once per clone).
 
 ```bash
 # 1. Clone and enter the repo
 cd Review-Cat
 
-# 2. Install system prerequisites
-./dev/scripts/setup.sh
+# 2. Verify local toolchain
+./scripts/setup.sh
 # This script:
-#   - Installs gh CLI (if missing)
-#   - Installs jq (if missing)
-#   - Downloads github-mcp-server binary from GitHub Releases (if missing)
-#   - Verifies: copilot, gh, jq, cmake, g++, github-mcp-server
-#   - Requires GITHUB_PERSONAL_ACCESS_TOKEN via environment (non-interactive).
-#     If unset, exit with a clear message rather than prompting.
-#   - Runs gh auth login if not authenticated
-#   - All installs are idempotent — safe to re-run
+#   - verifies: git, cmake/ctest, bash, a C++ toolchain
+#   - ensures scripts under ./scripts are executable
+#   - prepares the gitignored ./external cache directory
+#   - optional: apt-based install of missing build deps (Debian/Ubuntu)
+#   - optional: fetch/build externals from config/externals.json
 
-# 3. Bootstrap the project
-./dev/scripts/bootstrap.sh
-# This script:
-#   - Verifies setup.sh was run (checks for all tools)
-#   - Creates dev/mcp/github-mcp.json MCP config
-#   - Creates dev/plans/prd.json with initial bootstrap tasks
-#   - Sets up label taxonomy on the repo (agent-task, etc.)
-#   - Creates initial GitHub Issues for Phase 0 tasks
-#   - Runs ./scripts/build.sh to verify C++ scaffold compiles
-#   - Runs initial self-review to seed first issues
-#  - Prints: "Bootstrap complete. Run: ./dev/scripts/daemon.sh"
+# 3. Bootstrap the project (planned)
+./scripts/bootstrap.sh
+# Prints: "Bootstrap complete. Run: ./scripts/daemon.sh"
 
-# 4. Start supervisor + Director daemon
-./dev/scripts/daemon.sh
+# 4. Start supervisor + Director daemon (planned)
+./scripts/daemon.sh
 # Director will:
 #   - Read open issues labeled 'agent-task'
 #   - Create worktrees for parallel work
@@ -844,11 +833,11 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
 - **Bootstrap scaffold milestone:** see Issue #16.
 - Create `app/` and `dev/` directory structure.
 - Create `config/dev.toml` (dev harness timings, ports, worker limits; no secrets).
-- Write `dev/scripts/setup.sh` (install system prereqs: gh, jq,
+- Write `scripts/setup.sh` (install system prereqs: gh, jq,
   github-mcp-server binary, verify toolchain).
-- Write `dev/scripts/bootstrap.sh` (configure MCP, create initial issues,
+- Write `scripts/bootstrap.sh` (configure MCP, create initial issues,
   set up labels, verify build).
-- Write `dev/scripts/daemon.sh` (keep-alive supervisor for Agent 0).
+- Write `scripts/daemon.sh` (keep-alive supervisor for Agent 0).
 - Write `dev/harness/director.sh` (heartbeat daemon with worktree management).
 - Write `dev/harness/run-cycle.sh` (agent cycle in worktree).
 - Write `dev/harness/worktree.sh` (create/teardown helpers).
