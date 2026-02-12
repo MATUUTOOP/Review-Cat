@@ -75,8 +75,6 @@ CI is expected to enforce (at minimum):
 - unit tests
 - integration tests (where present)
 
-See `.github/workflows/unit-tests.yml`, `.github/workflows/integration-tests.yml`, and `.github/workflows/benchmarks.yml`.
-
 ## Cross-references
 
 - Issue #8 (this document)

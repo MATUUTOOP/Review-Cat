@@ -109,7 +109,7 @@ if [[ "$run_unit" -eq 1 ]]; then
     unit_rc=$?
     failures=1
   fi
-  if ! run_sh_dir "test/unit" "unit"; then
+  if ! run_sh_dir "scripts/test-suites/unit" "unit"; then
     unit_rc=$?
     failures=1
   fi
@@ -121,7 +121,7 @@ if [[ "$run_integration" -eq 1 ]]; then
     integration_rc=$?
     failures=1
   fi
-  if ! run_sh_dir "test/integration" "integration"; then
+  if ! run_sh_dir "scripts/test-suites/integration" "integration"; then
     integration_rc=$?
     failures=1
   fi
@@ -138,7 +138,7 @@ if [[ "$run_bench" -eq 1 ]]; then
 
   export REVIEWCAT_BENCH_OUTPUT="$bench_output"
 
-  if ! run_sh_dir "test/bench" "bench"; then
+  if ! run_sh_dir "scripts/test-suites/bench" "bench"; then
     bench_rc=$?
     failures=1
   fi

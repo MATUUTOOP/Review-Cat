@@ -18,7 +18,6 @@ This repo stores project skills under:
 	- `description` (required)
 3. The frontmatter `name` MUST match the parent directory name.
 4. A template SHOULD exist at `.github/skills/skill-template/SKILL.md`.
-5. A CI check MUST validate skill frontmatter and naming constraints.
 
 ## Interfaces
 
@@ -54,9 +53,9 @@ The Markdown body has no required structure, but SHOULD include:
 - `memory-query` — search engrams and `MEMORY.md`
 - `docgen` — generate docs snippets / update TOCs
 
-## CI / Validation
+## Validation (optional)
 
-Add a lightweight `skill-lint` GitHub Action that verifies:
+If desired, add a lightweight lint step (local script or CI) that verifies:
 
 - `SKILL.md` frontmatter exists and contains `name` + `description`
 - `name` matches directory name and passes Agent Skills naming constraints
@@ -66,7 +65,7 @@ Add a lightweight `skill-lint` GitHub Action that verifies:
 
 - [ ] `.github/skills/skill-template/SKILL.md` exists
 - [ ] Initial skeletons for prioritized skills exist
-- [ ] `skill-lint` workflow validates SKILL.md presence & required frontmatter
+- [ ] (Optional) A lint step validates SKILL.md presence & required frontmatter
 
 ## Test cases
 
