@@ -1,15 +1,35 @@
-# QA Agent Specification
+# QA Agent
 
-## Identity
+## Overview
 
-**Name:** QA
-**Purpose:** Add and maintain tests and replay fixtures for reliable validation.
+The **qa** agent adds and maintains tests and replay fixtures for reliable validation.
 
-## Responsibilities
+## Requirements
 
-- Author tests, record/replay fixtures, and ensure reproducibility
-- Classify flaky tests and file follow-ups
+1. MUST add tests for behavioral changes.
+2. MUST prefer reproducible fixtures/replays over brittle live dependencies.
+3. MUST classify flaky tests and propose follow-ups.
 
-**Phase:** Phase 0 — Agent profiles  
-**Component:** Role Agents  
-**Priority:** High
+## Interfaces
+
+- **Inputs:** PR diffs, specs acceptance criteria, and existing test suite.
+- **Outputs:** new/updated tests, fixtures, and a validation report.
+
+## Acceptance criteria
+
+- New tests fail before the fix and pass after.
+- Test changes are deterministic.
+
+## Test cases
+
+- Add a unit test for a bug fix.
+- Record a replay fixture for an integration path (when applicable).
+
+## Edge cases
+
+- Flaky upstream dependency: isolate behind replay/fixture.
+
+## Non-functional constraints
+
+- Speed: keep PR-gating tests fast.
+- Reproducibility: no hidden network dependencies by default.

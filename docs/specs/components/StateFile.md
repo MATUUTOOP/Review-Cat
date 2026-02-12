@@ -19,10 +19,23 @@ It exists to make the dev harness more resilient:
 
 Durable coordination remains: GitHub Issues/PRs + tracked `/memory/**` engrams + `memory/catalog.json`.
 
-## Location and governance (normative)
+## Requirements
+
+1. MUST be safe to delete at any time.
+2. MUST be created lazily if absent.
+3. MUST be gitignored and never committed.
+4. MUST NOT include secrets (tokens, credentials).
+5. Readers MUST handle missing fields (forward-compatible parsing).
+
+## Location
 
 - Path: repo root `STATE.json`
 - Git policy: MUST be gitignored and never committed
+
+## Interfaces
+
+- **Read:** on startup/resume to determine first-run vs resume and to recover cached context.
+- **Write:** on state transitions (Director loop tick, worker stage changes, release context updates).
 
 ## Minimal schema (recommended)
 
@@ -74,6 +87,30 @@ This is a recommended minimum schema. Fields may be added over time.
 - The file MUST be writable by the agent process in its container/worktree.
 - The file MUST NOT include secrets (tokens, credentials). If a value looks sensitive, it must be redacted or omitted.
 - Readers MUST handle missing fields (forward-compatible parsing).
+
+## Acceptance criteria
+
+- A fresh checkout can run with no existing `STATE.json` (file is created lazily).
+- Deleting `STATE.json` does not break the harness (it reinitializes cleanly).
+- `git status` never shows `STATE.json` as tracked/added.
+- The file never contains secrets.
+
+## Test cases
+
+- Start with no `STATE.json` and verify the harness creates it with `schema_version` + timestamps.
+- Simulate a restart with an existing `STATE.json` and verify resume paths are taken.
+- Verify malformed JSON is handled as “missing” with a clear error log.
+
+## Edge cases
+
+- Partial writes (crash mid-write): write atomically via temp file + rename.
+- Concurrent writers (Director + worker): use atomic writes and last-write-wins.
+
+## Non-functional constraints
+
+- Reliability: writes should be atomic and robust to crashes.
+- Portability: file paths and line endings must work across Linux + Windows worktrees.
+- Bounded growth: keep the state small (cache only what is needed).
 
 ## References
 

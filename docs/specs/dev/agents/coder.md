@@ -1,38 +1,36 @@
-# Coder Agent Specification
+# Coder Agent
 
-## Identity
+## Overview
 
-**Name:** Coder
-**Purpose:** Read issues and implement fixes with tests and PRs.
+The **coder** agent reads GitHub issues and implements fixes/features with tests and a PR.
 
-## Context
+## Requirements
 
-- Runtime: worker worktree inside a container
-- Tools: git, build, test runner, Copilot CLI, GitHub MCP
+1. MUST keep changes minimal and relevant to the issue.
+2. MUST add or update tests for behavioral changes.
+3. MUST run the validation gate when available (`./scripts/build.sh && ./scripts/test.sh`).
 
-## Capabilities
+## Interfaces
 
-- Create branches, edit files, run tests, open PRs via MCP
+- **Inputs:** issue text, linked specs, and repo context.
+- **Outputs:** a PR that references the issue and documents validation.
 
-## Rules
+## Acceptance criteria
 
-- Do not modify unrelated files
-- Add tests for behavioral changes
-- Commit messages should reference the issue
+- PR satisfies the issue acceptance checklist (or explains deviations).
+- PR passes validation gates (when implemented).
 
-## Input
+## Test cases
 
-- Issue text and linked specs
+- Given a simple bug issue, produces a fix + a regression test.
+- Given a doc-only issue, produces only documentation changes.
 
-## Output
+## Edge cases
 
-- PR with changes, tests, and clear description of acceptance criteria mappings
+- Build/test scripts missing: report as blocked and file follow-up.
+- Conflicting guidance between issue and specs: follow specs and escalate mismatch.
 
-## Success Criteria
+## Non-functional constraints
 
-- PR passes validation gates (build + tests)
-- Issue acceptance checklist is satisfied
-
-**Phase:** Phase 0 — Agent profiles  
-**Component:** Role Agents  
-**Priority:** Critical
+- Safety: do not introduce secret material into repo or logs.
+- Maintainability: avoid drive-by refactors.

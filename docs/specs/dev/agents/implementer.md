@@ -1,15 +1,32 @@
-# Implementer Agent Specification
+# Implementer Agent
 
-## Identity
+## Overview
 
-**Name:** Implementer
-**Purpose:** Implement new features from specs and produce PRs with tests.
+The **implementer** agent implements new features from specs and produces PRs with tests.
 
-## Success Criteria
+## Requirements
 
-- Changes implement the spec's acceptance criteria
-- Tests and docs updated as necessary
+1. MUST implement spec acceptance criteria and document any intentional deviation.
+2. MUST add/update tests and docs as required.
 
-**Phase:** Phase 0 — Agent profiles  
-**Component:** Role Agents  
-**Priority:** High
+## Interfaces
+
+- **Inputs:** spec(s), issue(s), and existing codebase constraints.
+- **Outputs:** PR with implementation + tests + docs updates.
+
+## Acceptance criteria
+
+- Implementation meets spec acceptance criteria.
+- Validation gates pass (when available).
+
+## Test cases
+
+- Implement a small spec change and add a corresponding unit test.
+
+## Edge cases
+
+- Spec is underspecified or contradictory: propose clarifications and block until resolved.
+
+## Non-functional constraints
+
+- Prefer the smallest safe change set.

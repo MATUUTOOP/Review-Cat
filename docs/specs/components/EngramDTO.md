@@ -64,6 +64,23 @@ Rationale:
 - Two agents given the same canonical JSON produce the same `hash`.
 - Engrams can be searched/grepped by id, topic, linked issue, or decision.
 
+## Test cases
+
+- Validate a well-formed EngramDTO against the schema.
+- Validate that canonical JSON hashing is stable across two different hosts.
+- Validate that `version` matches the `<batch_id>` in the normative file path.
+
+## Edge cases
+
+- Empty `facts`/`decisions` arrays (should still validate).
+- Invalid `scope` value (reject).
+- Token-like content appears in extracted facts (must be redacted/omitted).
+
+## Non-functional constraints
+
+- Determinism: canonicalization + hashing must be stable across platforms.
+- Bounded size: keep engrams small enough for readable PR diffs and configured budgets.
+
 ## Example (non-normative)
 
 Example file path:

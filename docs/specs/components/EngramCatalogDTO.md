@@ -56,6 +56,21 @@ Each `entries[].path` MUST point at an engram JSON using the normative layout:
 - Workers can determine if their local worktree is missing engrams by comparing catalog entries.
 - Catalog supports partial sync (only ST or LT) if needed.
 
+## Test cases
+
+- Given a new catalog entry, a worker can detect it is missing the referenced engram path.
+- Given a canonically serialized catalog, hashing is stable across hosts.
+
+## Edge cases
+
+- Duplicate `engram_id` entries (reject or deterministic last-write-wins).
+- Missing referenced engram path (worker requests refresh / reports).
+
+## Non-functional constraints
+
+- Determinism: hashing must be stable across hosts.
+- Size: catalog should remain small enough to broadcast over the agent bus.
+
 ## Example (non-normative)
 
 File path:

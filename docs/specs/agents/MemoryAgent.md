@@ -6,7 +6,7 @@ The **MemoryAgent** is responsible for turning older, low-level swarm experience
 
 It operates as a supporting agent invoked by the Director.
 
-## Responsibilities
+## Requirements
 
 - Consume (or be provided) slices of the normalized agent-bus event buffer.
 - Extract stable facts/decisions/lessons.
@@ -16,13 +16,15 @@ It operates as a supporting agent invoked by the Director.
 - Propose a catalog update when needed (`memory/catalog.json` remains Director-authoritative).
 - Propose changes via a PR.
 
-## Inputs
+## Interfaces
+
+### Inputs
 
 - Event slice (bounded window) with timestamps and topics.
 - Current `EngramCatalogDTO` and any existing engrams.
 - Memory budget constraints from `config/dev.toml`.
 
-## Outputs
+### Outputs
 
 - New engram files (append-only preference).
 - Optional catalog update proposal (Director remains authoritative).
@@ -31,7 +33,7 @@ It operates as a supporting agent invoked by the Director.
   - why items were promoted to LT
   - how size budget improved
 
-## Rules and constraints
+## Non-functional constraints
 
 - Must not include secrets.
 - Must compact **oldest-first**.
@@ -43,6 +45,16 @@ It operates as a supporting agent invoked by the Director.
 - Produces EngramDTOs that validate and hash deterministically.
 - Reduces memory pressure by allowing eviction of older raw events.
 - Keeps durable memory queryable by other agents.
+
+## Test cases
+
+- Given a bounded event slice, produces EngramDTO output conforming to `docs/specs/dev/components/EngramDTO.md`.
+- Given an over-budget buffer, compacts oldest-first and emits an EngramDTO within configured size limits.
+
+## Edge cases
+
+- Slice contains token-like strings (redact/omit; never write secrets).
+- Slice timestamps are out-of-order (normalize before summarizing).
 
 ## Notes
 
