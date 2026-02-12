@@ -59,7 +59,7 @@ Related:
 
 ### `[agent_bus]`
 
-Agent bus = swarm control plane (real-time telemetry + control). See `docs/specs/systems/AgentBusSystem.md`.
+Agent bus = swarm control plane (real-time telemetry + control). See `docs/specs/dev/systems/AgentBusSystem.md`.
 
 - `mode` — `director_broker` for MVP
 - `listen_addr`, `listen_port` — Director broker bind address/port
@@ -88,7 +88,7 @@ Defines shared memory budgets/paths and the tracked focus view.
 Related:
 
 - Issue #13 (memory sync protocol)
-- `docs/specs/systems/MemorySyncSystem.md`
+- `docs/specs/dev/systems/MemorySyncSystem.md`
 
 ### `[rate_limits.github]` and `[rate_limits.model]`
 
@@ -100,10 +100,10 @@ Swarm-level pacing knobs:
 
 Related:
 
-- `docs/specs/systems/RequestBudgetSystem.md`
+- `docs/specs/dev/systems/RequestBudgetSystem.md`
 
 ## Related docs/specs
 
 - `docs/dev/DIRECTOR_DEV_WORKFLOW.md`
-- `docs/specs/systems/WorktreeSystem.md`
-- `docs/specs/agents/DirectorDevAgent.md`
+- `docs/specs/dev/systems/WorktreeSystem.md`
+- `docs/specs/dev/agents/DirectorDevAgent.md`

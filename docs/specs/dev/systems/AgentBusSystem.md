@@ -265,7 +265,11 @@ Payload:
 - `catalog_version` (string | integer)
 - `catalog_hash` (string)
 - `catalog_path` (string) — should be `memory/catalog.json`
-- `entries` (array) — see `docs/specs/components/EngramCatalogDTO.md`
+- `entries` (array) — see `docs/specs/dev/components/EngramCatalogDTO.md`
+
+Canonical path:
+
+- `docs/specs/dev/components/EngramCatalogDTO.md`
 
 ### `memory_event.v1`
 
@@ -312,5 +316,10 @@ require_catalog_hash_match = true
 - Issue #21 (Worker sync policy)
 - Issue #9 (Error handling)
 - Issue #13 (`MemorySyncSystem`)
-- `docs/specs/systems/OrchestrationFSMSystem.md`
-- `docs/specs/systems/RequestBudgetSystem.md`
+- `docs/specs/dev/systems/OrchestrationFSMSystem.md`
+- `docs/specs/dev/systems/RequestBudgetSystem.md`
+
+Canonical paths:
+
+- `docs/specs/dev/systems/OrchestrationFSMSystem.md`
+- `docs/specs/dev/systems/RequestBudgetSystem.md`

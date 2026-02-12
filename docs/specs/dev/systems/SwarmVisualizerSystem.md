@@ -74,7 +74,7 @@ The visualizer is intended to run on the operator’s machine (Windows or Linux)
 
 ### Inputs
 
-- Agent bus messages (framed + enveloped). At minimum (message types defined in `docs/specs/systems/AgentBusSystem.md`):
+- Agent bus messages (framed + enveloped). At minimum (message types defined in `docs/specs/dev/systems/AgentBusSystem.md`):
   - `heartbeat.v1`
   - `worker_error.v1`
   - `project_state_snapshot.v1`
@@ -122,5 +122,5 @@ The visualizer is intended to run on the operator’s machine (Windows or Linux)
 
 ## Notes
 
-- This spec assumes the existence of an agent bus and ProjectState DTOs; canonical message types and envelope framing are defined in `docs/specs/systems/AgentBusSystem.md`.
+- This spec assumes the existence of an agent bus and ProjectState DTOs; canonical message types and envelope framing are defined in `docs/specs/dev/systems/AgentBusSystem.md`.
 - The visualizer is an operator tool for the dev harness first; it may later be integrated into the runtime app UI if it remains valuable.

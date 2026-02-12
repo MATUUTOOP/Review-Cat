@@ -21,8 +21,8 @@ other continuously.
 > **See also:** [PLAN.md](../../PLAN.md) §5 for heartbeat architecture,
 > [AGENT.md](../../AGENT.md) for the swarm operating contract,
 > [TODO.md](../../TODO.md) Phase 0–1 for implementation tasks, and
-> [COPILOT_CLI_CHALLENGE_DESIGN.md](COPILOT_CLI_CHALLENGE_DESIGN.md) for full
-> design context.
+> [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) for cross-cutting architecture
+> context.
 
 Reliability policy (retries, recovery, escalation) is documented in:
 
@@ -58,7 +58,7 @@ last-seen SHAs/hashes). It is never committed.
 
 Recommended minimum fields + an example JSON are specified in:
 
-- `docs/specs/components/StateFile.md`
+- `docs/specs/dev/components/StateFile.md`
 
 ## Roles
 
@@ -77,13 +77,14 @@ DirectorDev coordinates these roles:
 In Copilot CLI, these roles are expressed as custom agents:
 
 - Agent profiles live in `.github/agents/` (Copilot CLI repo-level agents).
-- Role-specific prompt files live in `dev/agents/` (e.g., `architect.md`,
-  `implementer.md`, `coder.md`, `qa.md`, `docs.md`, `security.md`,
-  `code-review.md`).
-- All agents are invoked via `copilot -p @dev/agents/<role>.md "..."`.
+- All role agents are invoked by referencing the agent markdown file, e.g.
+  `copilot -p @.github/agents/<role>.md "..."`.
 - Agents use the **GitHub MCP Server** for issue/PR operations when configured
   with `--mcp-config dev/mcp/github-mcp.json` (remote HTTP MCP; preferred MVP)
   or `--mcp-config dev/mcp/github-mcp-stdio.json` (local stdio fallback).
+
+> Note: `dev/agents/` was a legacy location for role prompt files. The
+> canonical location is now `.github/agents/`.
 
 All development tooling is **bash shell scripts** under `dev/`.
 No C++ compilation is required for the dev harness to operate.
@@ -184,7 +185,7 @@ render a live task graph and provide operator controls (start/stop/pause).
   - this pulls in updated specs/protocols
   - this pulls in newly merged engrams under `/memory/` (durable shared memory)
 
-  The Director can enforce this using drift thresholds from `config/dev.toml` (`[policy.sync_main]`) and agent-bus messages like `sync_required` / `protocol_incompatibility` (see `docs/specs/systems/AgentBusSystem.md`).
+  The Director can enforce this using drift thresholds from `config/dev.toml` (`[policy.sync_main]`) and agent-bus messages like `sync_required` / `protocol_incompatibility` (see `docs/specs/dev/systems/AgentBusSystem.md`).
 5. **Validate** — `./scripts/build.sh && ./scripts/test.sh`.
 6. **Create PR** — Via GitHub MCP targeting the active release branch and using
    `Refs #<issue>` (the release PR is what closes issues on merge to `main`).

@@ -190,19 +190,19 @@ validates via build + test, and commits. See [PLAN.md](PLAN.md) §5 for details.
 | [TODO.md](TODO.md) | Actionable task list by phase |
 | [AGENT.md](AGENT.md) | Agent system overview: roles, guardrails, agent bus, memory protocol |
 | [Docs Index](docs/INDEX.md) | Documentation landing page (dev vs app) |
-| [Design Doc](docs/dev/COPILOT_CLI_CHALLENGE_DESIGN.md) | Architecture, UX, integration design |
+| [Architecture](docs/ARCHITECTURE.md) | Cross-cutting architecture + safety model |
 | [Director Workflow](docs/dev/DIRECTOR_DEV_WORKFLOW.md) | DirectorDev recursive development spec |
 | [Implementation Checklist](docs/dev/IMPLEMENTATION_CHECKLIST.md) | Step-by-step checklist |
 | [Prompt Cookbook](docs/dev/PROMPT_COOKBOOK.md) | Curated prompt patterns |
-| [Specs (Dev)](docs/dev/specs/SPECS.md) | Dev harness agent + orchestration specifications |
-| [Specs (App)](docs/app/specs/SPECS.md) | Runtime app component/entity/system specifications |
+| [Specs (Dev)](docs/specs/dev/SPECS.md) | Dev harness agent + orchestration specifications |
+| [Specs (App)](docs/specs/app/SPECS.md) | Runtime app component/entity/system specifications |
 
 ## Specs
 
 Specs are split by concern:
 
-- Dev harness specs index: `docs/dev/specs/SPECS.md`
-- Runtime app specs index: `docs/app/specs/SPECS.md`
+- Dev harness specs index: `docs/specs/dev/SPECS.md`
+- Runtime app specs index: `docs/specs/app/SPECS.md`
 
 During migration, many specs still live physically under `docs/specs/`.
 Use the indices above for navigation.

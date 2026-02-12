@@ -51,8 +51,8 @@ Canonical label taxonomy and claim-comment format: `docs/dev/GITHUB_LABELS.md`.
 - Single-cycle (manual/debug invocation): `dev/harness/run-cycle.sh <issue> <branch> <base_branch>`
 - Artifact output: `dev/audits/<audit_id>/`
 
-Role agents are defined under `.github/agents/` and `dev/agents/` as markdown
-prompt files, invoked via `copilot -p @dev/agents/<role>.md "..."`.
+Role agents are defined under `.github/agents/` as markdown prompt files,
+invoked via `copilot -p @.github/agents/<role>.md "..."`.
 
 ## Acceptance criteria
 
@@ -82,7 +82,7 @@ prompt files, invoked via `copilot -p @dev/agents/<role>.md "..."`.
 
 ## References
 
-- `docs/specs/systems/ReleaseCycleSystem.md`
-- `docs/specs/systems/OrchestrationFSMSystem.md`
-- `docs/specs/systems/AgentBusSystem.md`
+- `docs/specs/dev/systems/ReleaseCycleSystem.md`
+- `docs/specs/dev/systems/OrchestrationFSMSystem.md`
+- `docs/specs/dev/systems/AgentBusSystem.md`
 - `AGENT.md` (swarm contract)

@@ -117,7 +117,7 @@ agents:
 ### Implementer
 
 ```
-copilot -p @dev/agents/implementer.md \
+copilot -p @.github/agents/implementer.md \
   "Implement the following spec: <spec content>. \
    Write C++17/20 code under app/src/. Use nlohmann/json for JSON, \
    toml++ for config, Catch2 for tests. Follow CMake build conventions." \
@@ -127,7 +127,7 @@ copilot -p @dev/agents/implementer.md \
 ### QA
 
 ```
-copilot -p @dev/agents/qa.md \
+copilot -p @.github/agents/qa.md \
   "Write Catch2 tests for the spec: <spec content>. \
    Tests go under app/tests/. Use record/replay fixtures where Copilot \
    CLI responses are needed." \
@@ -137,7 +137,7 @@ copilot -p @dev/agents/qa.md \
 ### Security
 
 ```
-copilot -p @dev/agents/security.md \
+copilot -p @.github/agents/security.md \
   "Security review the changes for: <spec content>. \
    Check for: buffer overflows, unsafe subprocess calls, credential \
    exposure, path traversal."
@@ -146,7 +146,7 @@ copilot -p @dev/agents/security.md \
 ### Code Review
 
 ```
-copilot -p @dev/agents/code-review.md \
+copilot -p @.github/agents/code-review.md \
   "Review this diff: <git diff output>. \
    Check for: C++ best practices, memory safety, error handling, \
    consistent naming, CMake target correctness."

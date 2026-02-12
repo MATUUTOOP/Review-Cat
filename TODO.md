@@ -1,7 +1,7 @@
 # ReviewCat — TODO
 
 > Actionable task list mapped to **PLAN.md** phases.
-> Each item maps to a spec under `docs/dev/specs/` or `docs/app/specs/` where applicable.
+> Each item maps to a spec under `docs/specs/dev/` or `docs/specs/app/` where applicable.
 > (Legacy specs may still live physically under `docs/specs/` during migration.)
 > Status: `[ ]` = not started, `[-]` = in progress, `[x]` = done
 >
@@ -201,23 +201,23 @@ These are the prompt files that define each agent's identity, capabilities,
 rules, and output format. They are the equivalent of Claude Code's system
 prompt — they tell the LLM what it is and how to behave.
 
-- [ ] Create `dev/agents/coder.md` — **CRITICAL, this is the core coding agent**:
+- [ ] Create `.github/agents/coder.md` — **CRITICAL, this is the core coding agent**:
   - Identity: "You are a coding agent for the ReviewCat project"
   - Capabilities: read/write files, run shell commands, use GitHub MCP tools
   - Context: C++17/20, CMake, nlohmann/json, toml++, Catch2, project structure
   - Rules: only modify files in your worktree, follow specs, write tests
   - Output: working code + tests that pass `scripts/build.sh && scripts/test.sh`
   - MCP tools: `get_issue`, `create_pull_request`, `add_issue_comment`
-- [ ] Create `dev/agents/implementer.md` — Writes new features from specs
-- [ ] Create `dev/agents/code-review.md` — Reviews PRs, posts review comments
-- [ ] Create `dev/agents/qa.md` — Writes Catch2 tests, creates fixtures
-- [ ] Create `dev/agents/architect.md` — Reviews architecture, complexity
-- [ ] Create `dev/agents/security.md` — Finds vulnerabilities, unsafe patterns
-- [ ] Create `dev/agents/docs.md` — Maintains documentation
+- [ ] Create `.github/agents/implementer.md` — Writes new features from specs
+- [ ] Create `.github/agents/code-review.md` — Reviews PRs, posts review comments
+- [ ] Create `.github/agents/qa.md` — Writes Catch2 tests, creates fixtures
+- [ ] Create `.github/agents/architect.md` — Reviews architecture, complexity
+- [ ] Create `.github/agents/security.md` — Finds vulnerabilities, unsafe patterns
+- [ ] Create `.github/agents/docs.md` — Maintains documentation
 - [ ] Create `.github/agents/reviewcat.md` — Repo-level Copilot agent definition
 - [ ] Verify agent invocation works:
   ```bash
-  copilot -p @dev/agents/coder.md \
+  copilot -p @.github/agents/coder.md \
     "Read the file PLAN.md and summarize the Phase 0 tasks" \
     --mcp-config dev/mcp/github-mcp.json
   ```
@@ -245,7 +245,7 @@ With them, you have a self-driving development daemon.
   - [ ] Create audit dir: `dev/audits/$(date +%Y%m%d-%H%M%S)-${issue}/`
   - [ ] Invoke coder agent with issue context + MCP + file write:
     ```bash
-    copilot -p @dev/agents/coder.md \
+    copilot -p @.github/agents/coder.md \
       "Fix issue #${ISSUE} on p3nGu1nZz/Review-Cat. \
        Read the issue via GitHub MCP. Implement the fix. Write tests. \
        Ensure scripts/build.sh && scripts/test.sh pass." \
@@ -271,7 +271,7 @@ With them, you have a self-driving development daemon.
   - [ ] Generate diff: `git diff HEAD~5..HEAD` (or full tree on first run)
   - [ ] For each persona (security, performance, architecture, testing, docs):
     ```bash
-    copilot -p @dev/agents/${PERSONA}-review.md \
+    copilot -p @.github/agents/${PERSONA}-review.md \
       "Review this code for ${PERSONA} concerns. Output JSON array: \
        [{title, description, severity, file, line_start, suggested_fix}]" \
       --stdin <<< "$DIFF" > /tmp/reviewcat-self-${PERSONA}.json
@@ -283,7 +283,7 @@ With them, you have a self-driving development daemon.
   - [ ] List active worktrees
   - [ ] For each: check if agent process is still running
   - [ ] Track worker container state + heartbeat TTL (via agent bus + docker state)
-  - [ ] Consume WorkerState heartbeats and structured error reports as defined in `docs/dev/specs/SPECS.md` (AgentBusSystem)
+  - [ ] Consume WorkerState heartbeats and structured error reports as defined in `docs/specs/dev/SPECS.md` (AgentBusSystem)
   - [ ] Apply retry/recovery/escalation policy from `docs/dev/ERROR_HANDLING.md`
   - [ ] For completed workers: validate build/test passed
   - [ ] For passing workers: merge PR **into active release branch** via MCP, teardown worktree

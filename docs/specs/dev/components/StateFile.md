@@ -117,4 +117,4 @@ This is a recommended minimum schema. Fields may be added over time.
 - Issue #22
 - `AGENT.md` (local cached state)
 - `docs/dev/DIRECTOR_DEV_WORKFLOW.md` (resume + release context)
-- `docs/specs/systems/WorktreeSystem.md`
+- `docs/specs/dev/systems/WorktreeSystem.md`

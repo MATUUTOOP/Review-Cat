@@ -131,5 +131,5 @@ When `release_published` is broadcast:
 
 - `AGENT.md` (swarm contract)
 - `docs/dev/DIRECTOR_DEV_WORKFLOW.md` (workflow)
-- `docs/specs/systems/OrchestrationFSMSystem.md` (state machines)
+- `docs/specs/dev/systems/OrchestrationFSMSystem.md` (state machines)
 - GitHub Issue: #14 (Docker image lifecycle + release updates)

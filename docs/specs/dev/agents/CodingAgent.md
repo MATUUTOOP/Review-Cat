@@ -7,7 +7,7 @@ self-improvement workflow. It reads a GitHub Issue (typically created by a
 review agent), understands the problem, implements a fix in an isolated git
 worktree, writes tests, and creates a Pull Request via GitHub MCP Server.
 
-This agent is invoked via `copilot -p @dev/agents/coder.md "..."` with
+This agent is invoked via `copilot -p @.github/agents/coder.md "..."` with
 GitHub MCP Server configured for issue/PR operations.
 
 ## Requirements
@@ -28,7 +28,7 @@ GitHub MCP Server configured for issue/PR operations.
 
 ## Interfaces
 
-- Invocation: `copilot -p @dev/agents/coder.md "Fix issue #<N>"`
+- Invocation: `copilot -p @.github/agents/coder.md "Fix issue #<N>"`
 - GitHub MCP tools used:
   - `get_issue` — read issue title, body, labels
   - `create_pull_request` — create PR from fix branch

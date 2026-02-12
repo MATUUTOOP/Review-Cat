@@ -1,24 +1,20 @@
-# Legacy Specs Index (Migration)
+# Specs Index
 
-This repository is migrating from a single flat spec tree (`docs/specs/`) to a **two-track** hierarchy:
+Specs live under `docs/specs/` and are organized by **concern**:
 
-- **Dev harness specs** (agents + harness systems): [`docs/dev/specs/SPECS.md`](../dev/specs/SPECS.md)
-- **Runtime app specs** (components/entities/systems): [`docs/app/specs/SPECS.md`](../app/specs/SPECS.md)
+- **Dev harness specs** (agents + harness systems): [`docs/specs/dev/SPECS.md`](dev/SPECS.md)
+- **Runtime app specs** (components/entities/systems): [`docs/specs/app/SPECS.md`](app/SPECS.md)
 
-During this transition, many spec files still live physically under `docs/specs/`. Use the dev/app indices above for navigation.
+## Directories
 
-## Legacy directories
-
-- Agents: [`docs/specs/agents/`](agents/)
-- Components: [`docs/specs/components/`](components/)
-- Entities: [`docs/specs/entities/`](entities/)
-- Systems: [`docs/specs/systems/`](systems/)
+- Dev harness specs: `docs/specs/dev/`
+- Runtime app specs: `docs/specs/app/`
 
 ## Creating new specs
 
-Prefer placing new specs under the appropriate tree:
+Place new specs under the appropriate subtree:
 
-- `docs/dev/specs/` for dev harness concerns
-- `docs/app/specs/` for runtime app concerns
+- `docs/specs/dev/` for dev harness concerns
+- `docs/specs/app/` for runtime app concerns
 
-The spec template is at [`docs/specs/_template.md`](_template.md).
+Use the template at [`docs/specs/_template.md`](_template.md).

@@ -20,7 +20,7 @@ This makes it safe for multiple workers to:
 
 …without stomping on each other.
 
-See the spec: `docs/dev/specs/systems/WorktreeSystem.md`.
+See the spec: `docs/specs/dev/systems/WorktreeSystem.md`.
 
 ## Containers (execution)
 
@@ -37,4 +37,4 @@ See also:
 
 - Dev harness configuration: `docs/dev/CONFIGURATION.md`
 - Director workflow: `docs/dev/DIRECTOR_DEV_WORKFLOW.md`
-- Release cycle model: `docs/dev/specs/systems/ReleaseCycleSystem.md`
+- Release cycle model: `docs/specs/dev/systems/ReleaseCycleSystem.md`

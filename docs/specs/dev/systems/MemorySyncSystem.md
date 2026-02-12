@@ -116,7 +116,15 @@ Drift detection is enforced by the Director using worker heartbeat fields such a
 - `catalog_hash_seen`
 
 and agent-bus control messages such as `sync_required` / `protocol_incompatibility`
-(see `docs/specs/systems/AgentBusSystem.md`).
+(see `docs/specs/dev/systems/AgentBusSystem.md`).
+
+## Note on spec paths
+
+The canonical location for the agent bus spec is:
+
+- `docs/specs/dev/systems/AgentBusSystem.md`
+
+Any older references to `docs/specs/systems/AgentBusSystem.md` should be updated.
 
 ## Interfaces
 

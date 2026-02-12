@@ -97,7 +97,7 @@ These operations are conceptually higher-level; they are implemented using the p
 
 ## Related specs
 
-- `docs/specs/systems/RequestBudgetSystem.md` — global pacing/backpressure for GitHub and model calls.
+- `docs/specs/dev/systems/RequestBudgetSystem.md` — global pacing/backpressure for GitHub and model calls.
 
 ## Non-functional constraints
 

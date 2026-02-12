@@ -42,7 +42,7 @@ These require human steering and MUST result in `agent-blocked`:
 
 ## Structured error reporting (agent bus DTO)
 
-Workers report errors to the Director using `worker_error.v1` (see `docs/specs/systems/AgentBusSystem.md`).
+Workers report errors to the Director using `worker_error.v1` (see `docs/specs/dev/systems/AgentBusSystem.md`).
 
 The error payload MUST include enough information for the Director to decide:
 
@@ -96,7 +96,7 @@ Recommended behavior:
 - Honor `Retry-After` when provided by upstream (GitHub).
 - Use circuit-breaker style cooldown for systemic problems (rate limits, widespread timeouts).
 
-See also `docs/specs/systems/RequestBudgetSystem.md`.
+See also `docs/specs/dev/systems/RequestBudgetSystem.md`.
 
 ## Director recovery rules (planning-level)
 
@@ -137,7 +137,7 @@ When a retry is happening, prefer a lightweight progress comment rather than spa
 ## References
 
 - Issue #9
-- `docs/specs/systems/AgentBusSystem.md`
-- `docs/specs/systems/OrchestrationFSMSystem.md`
-- `docs/specs/systems/RequestBudgetSystem.md`
+- `docs/specs/dev/systems/AgentBusSystem.md`
+- `docs/specs/dev/systems/OrchestrationFSMSystem.md`
+- `docs/specs/dev/systems/RequestBudgetSystem.md`
 - `config/dev.toml`

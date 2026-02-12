@@ -79,7 +79,7 @@ removed.
 
 Recommended minimum fields for `STATE.json` are defined in:
 
-- `docs/specs/components/StateFile.md`
+- `docs/specs/dev/components/StateFile.md`
 
 ## Test cases
 
@@ -111,5 +111,5 @@ Recommended minimum fields for `STATE.json` are defined in:
 
 See:
 
-- `docs/specs/agents/DirectorDevAgent.md`
+- `docs/specs/dev/agents/DirectorDevAgent.md`
 - `docs/dev/DIRECTOR_DEV_WORKFLOW.md`

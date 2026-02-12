@@ -1,8 +1,8 @@
 # ReviewCat Implementation Checklist
 
 This is a practical checklist aligned to [PLAN.md](../../PLAN.md) and the
-[design doc](COPILOT_CLI_CHALLENGE_DESIGN.md). It is intentionally explicit and
-sequential.
+architecture overview ([docs/ARCHITECTURE.md](../ARCHITECTURE.md)). It is
+intentionally explicit and sequential.
 
 > **Tech stack:** C++17/20, CMake, bash shell scripts. See PLAN.md §3 and §10.
 
@@ -13,7 +13,7 @@ sequential.
   - [ ] `app/include/`, `app/tests/`, `app/config/`
   - [ ] `app/CMakeLists.txt` with targets: `reviewcat` binary, `reviewcat_core` lib, `reviewcat_tests`
 - [ ] Create `dev/` directory hierarchy:
-  - [ ] `dev/agents/`, `dev/harness/`, `dev/plans/`, `dev/prompts/`, `dev/scripts/`, `dev/audits/`
+  - [ ] `dev/harness/`, `dev/plans/`, `dev/prompts/`, `dev/scripts/`, `dev/audits/`
 - [ ] Write root `CMakeLists.txt` (delegates to `app/CMakeLists.txt`).
 - [ ] Set up dependency management (vcpkg or git submodules) for:
   - [ ] `nlohmann/json`, `toml++`, `Catch2`, `libgit2`, `SDL3`, `spdlog`
@@ -26,7 +26,7 @@ sequential.
 - [ ] Write `dev/harness/run-cycle.sh` — agent cycle orchestration.
 - [ ] Write `dev/scripts/setup.sh` — install system prereqs (gh, jq, github-mcp-server).
 - [ ] Write `dev/scripts/bootstrap.sh` — project initialization (MCP config, labels, issues).
-- [ ] Create agent profiles in `.github/agents/` and `dev/agents/`.
+- [ ] Create agent profiles in `.github/agents/`.
 - [ ] Create `dev/plans/prd.json` initial backlog.
 - [ ] Add a minimal `reviewcat --help` with command stubs.
 - [ ] Create `.gitignore` (build/, *.o, *.a, etc.).
@@ -43,7 +43,7 @@ sequential.
   - [ ] On failure: retry (max 3), log, skip.
   - [ ] Sleep for configurable interval.
 - [ ] Implement `dev/harness/run-cycle.sh`:
-  - [ ] Call role agents via `copilot -p @dev/agents/<role>.md "..."`.
+  - [ ] Call role agents via `copilot -p @.github/agents/<role>.md "..."`.
   - [ ] Capture output to `dev/audits/<bundle>/ledger/`.
 - [ ] Implement `dev/harness/record-audit.sh`:
   - [ ] Bundle: ledger + build/test logs + diff.

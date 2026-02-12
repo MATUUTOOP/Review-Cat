@@ -19,7 +19,9 @@ via GitHub Issues/PRs through the GitHub MCP Server.
 Repository-level agent profiles live in:
 
 - `.github/agents/<agent_name>.md`
-- `dev/agents/<agent_name>.md`
+
+`dev/agents/` is considered a legacy location and should not be used for new
+agent profiles.
 
 ### Agent roster:
 

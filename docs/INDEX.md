@@ -7,6 +7,10 @@ ReviewCat has **two distinct documentation tracks**:
 - **Dev harness** (how ReviewCat builds and improves itself)
 - **Runtime app** (what end users run)
 
+Cross-cutting overview:
+
+- Architecture overview: [`docs/ARCHITECTURE.md`](ARCHITECTURE.md)
+
 ## Dev harness docs
 
 Start here:
@@ -27,13 +31,14 @@ Start here:
 
 Key pages:
 
+- Runtime CLI + artifacts: [`docs/app/USAGE.md`](app/USAGE.md)
 - App configuration: [`docs/app/CONFIGURATION.md`](app/CONFIGURATION.md)
 
 ## Specs
 
 Specs are split by concern:
 
-- **Dev harness specs**: [`docs/dev/specs/`](dev/specs/) (agents + harness systems)
-- **Runtime app specs**: [`docs/app/specs/`](app/specs/) (components/entities/systems)
+- **Dev harness specs**: [`docs/specs/dev/`](specs/dev/) (agents + harness systems)
+- **Runtime app specs**: [`docs/specs/app/`](specs/app/) (components/entities/systems)
 
-If you land on legacy links under `docs/specs/`, see [`docs/specs/SPECS.md`](specs/SPECS.md).
+Start at [`docs/specs/SPECS.md`](specs/SPECS.md).
