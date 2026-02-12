@@ -1,22 +1,30 @@
+---
+name: build
+description: Builds this repository using CMake (via scripts/build.sh). Use when asked to build, compile, or troubleshoot build failures.
+compatibility: Requires bash, cmake, and a C++ toolchain.
+metadata:
+  category: build-and-ci
+  owner: p3nGu1nZz
+  version: "0.1"
+  tags: "build cmake compile"
+---
+
 # Skill: build
 
-**Name:** build
+## What this skill does
 
-**Summary / Purpose:**
-Builds the repository (default via CMake) and produces an artifact for testing.
+Builds ReviewCat using the repo's canonical build script.
 
-**Owner:** @p3nGu1nZz
+## How to use
 
-**Inputs:**
-- optional `--config` (Debug|Release)
+- Default build (Debug): run `./scripts/build.sh`
+- Release build: run `./scripts/build.sh --config Release`
 
-**Outputs:**
-- build artifacts under `build/` or `out/`
+## Outputs
 
-**Acceptance Criteria:**
-- Exit 0 on successful build, non-zero otherwise.
+- Build directory: `build/` (or `$REVIEWCAT_BUILD_DIR`)
+- Binary: `build/reviewcat`
 
-**Testing Plan:**
-- Integration test: run build in a clean environment and verify artifact exists.
+## Related
 
-**Related:** `docs/specs/dev/components/RepoScaffold.md`
+- `docs/specs/dev/components/RepoScaffold.md`

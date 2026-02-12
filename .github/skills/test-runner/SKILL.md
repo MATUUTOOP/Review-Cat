@@ -1,20 +1,34 @@
+---
+name: test-runner
+description: Runs tests by suite using the repo's canonical test layout (test/). Use when asked to run unit/integration/bench tests, troubleshoot failures, or validate the green gate.
+compatibility: Requires bash; unit tests require cmake/ctest if using the CMake test registry.
+metadata:
+  category: build-and-ci
+  owner: p3nGu1nZz
+  version: "0.1"
+  tags: "tests unit integration bench junit"
+---
+
 # Skill: test-runner
 
-**Name:** test-runner
+## What this skill does
 
-**Summary / Purpose:**
-Runs tests by type using the repo's canonical test layout (`test/`).
+Runs tests via `./scripts/test.sh`.
 
-**Owner:** @p3nGu1nZz
+## How to use
 
-**Inputs:**
-- `--unit|--integration|--bench|--all` and `--junit-output` / `--bench-output`
+- Unit tests: `./scripts/test.sh --unit`
+- Integration tests: `./scripts/test.sh --integration`
+- Benchmarks: `./scripts/test.sh --bench --bench-output build/bench.json`
+- All: `./scripts/test.sh --all`
 
-**Outputs:**
-- test result exit code; optional JUnit XML; bench JSON
+## Outputs
 
-**Acceptance Criteria:**
-- Returns non-zero on test failure; produces JUnit XML when requested.
+- Exit code: 0 on success, non-zero on failure
+- Optional JUnit XML: `--junit-output <path>`
+- Optional bench JSON: `--bench-output <path>`
 
-**Testing Plan:**
-- Integration: run against `test/fixtures/` example tests and verify outputs exist.
+## Related
+
+- `docs/specs/dev/components/TestDirectory.md`
+- `docs/specs/dev/TESTING_STRATEGY.md`

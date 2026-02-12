@@ -3,36 +3,45 @@
 ## Overview
 
 A **skills library** provides a canonical, discoverable place for small,
-reusable automation "skills" that agents or humans can invoke. Each skill is
-documented by a `SKILL.md` file and placed under `.github/skills/<skill-name>/`.
+reusable automation **Agent Skills** that Copilot (and other skill-capable
+clients) can load on-demand.
+
+This repo stores project skills under:
+
+- `.github/skills/<skill-name>/SKILL.md`
 
 ## Requirements
 
-1. A template MUST exist at `.github/skills/_TEMPLATE_/SKILL.md`.
-2. Each skill MUST live at `.github/skills/<skill-name>/SKILL.md`.
-3. A CI check MUST validate that each `SKILL.md` contains the required sections.
+1. Each skill MUST live at `.github/skills/<skill-name>/SKILL.md`.
+2. Each `SKILL.md` MUST start with YAML frontmatter containing:
+	- `name` (required)
+	- `description` (required)
+3. The frontmatter `name` MUST match the parent directory name.
+4. A template SHOULD exist at `.github/skills/skill-template/SKILL.md`.
+5. A CI check MUST validate skill frontmatter and naming constraints.
 
 ## Interfaces
 
-### `SKILL.md` format
+### `SKILL.md` file format
 
-## SKILL.md format
+`SKILL.md` is a Markdown file with **YAML frontmatter** followed by an arbitrary
+Markdown body.
 
-Each `SKILL.md` SHOULD include the following sections:
+Required frontmatter fields:
 
-- **Name** (snake-case)
-- **Summary / Purpose**
-- **Owner** (GitHub user or team)
-- **Inputs** (DTOs, CLI args, or message schema)
-- **Outputs** (artifacts, files, DTOs, side-effects)
-- **Examples** (invocation and sample outputs)
-- **Acceptance Criteria** (pass/fail rules)
-- **Testing Plan** (unit/integration tests to exercise the skill)
-- **Implementation Guidance** (tools, commands, permissions)
-- **Related Specs / Docs**
+- `name`: 1–64 chars, lowercase unicode alphanumeric + hyphens only; MUST match the directory name.
+- `description`: 1–1024 chars; MUST describe what the skill does *and* when to use it.
 
-Store a template at `.github/skills/_TEMPLATE_/SKILL.md` and individual skills
-at `.github/skills/<skill-name>/SKILL.md`.
+Recommended optional fields:
+
+- `compatibility`: environment requirements (keep short)
+- `metadata`: a map of string keys to string values (use for categories/tags/version/owner)
+
+The Markdown body has no required structure, but SHOULD include:
+
+- Step-by-step instructions
+- Examples of inputs/outputs
+- References to any bundled scripts/resources
 
 ## Initial suggested catalog
 
@@ -47,18 +56,21 @@ at `.github/skills/<skill-name>/SKILL.md`.
 
 ## CI / Validation
 
-Add a lightweight `skill-lint` GitHub Action that verifies presence and
-required fields in `SKILL.md` files on PRs.
+Add a lightweight `skill-lint` GitHub Action that verifies:
+
+- `SKILL.md` frontmatter exists and contains `name` + `description`
+- `name` matches directory name and passes Agent Skills naming constraints
+- `description` is non-empty
 
 ## Acceptance criteria
 
-- [ ] `.github/skills/_TEMPLATE_/SKILL.md` exists
+- [ ] `.github/skills/skill-template/SKILL.md` exists
 - [ ] Initial skeletons for prioritized skills exist
-- [ ] `skill-lint` workflow validates SKILL.md presence & required sections
+- [ ] `skill-lint` workflow validates SKILL.md presence & required frontmatter
 
 ## Test cases
 
-- Add a dummy skill folder missing required sections and verify CI fails.
+- Add a dummy skill folder missing required frontmatter and verify CI fails.
 - Add a well-formed skill and verify CI passes.
 
 ## Edge cases

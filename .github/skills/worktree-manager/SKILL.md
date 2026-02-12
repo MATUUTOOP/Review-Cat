@@ -1,18 +1,24 @@
+---
+name: worktree-manager
+description: Manages git worktrees for worker containers (create/remove/cleanup). Use when setting up parallel work, repairing worktree state, or cleaning up stale worktrees.
+metadata:
+  category: repo-and-git
+  owner: p3nGu1nZz
+  version: "0.1"
+  tags: "git worktree cleanup"
+---
+
 # Skill: worktree-manager
 
-**Name:** worktree-manager
+## What this skill does
 
-**Summary / Purpose:**
-Manage git worktrees used by worker containers: creation, removal, naming,
-and cleanup.
+Creates and manages worktrees consistent with the planned WorktreeSystem.
 
-**Owner:** @p3nGu1nZz
+## Guardrails
 
-**Inputs:**
-- branch name, worktree path template
+- Never commit secrets (e.g. `.env`, `STATE.json`).
+- Prefer deterministic worktree naming and cleanup.
 
-**Outputs:**
-- created worktree directory ready for use
+## Related
 
-**Testing Plan:**
-- Integration: create temporary worktree and verify it contains correct branch.
+- `docs/specs/dev/systems/WorktreeSystem.md`

@@ -1,32 +1,39 @@
-# SKILL.md Template
+---
+name: skill-template
+description: Template for authoring new skills in this repo. Use when creating a new .github/skills/<name>/SKILL.md.
+metadata:
+	category: authoring
+	owner: p3nGu1nZz
+	version: "0.1"
+	tags: "template agent skills"
+---
 
-**Name:** <snake-case-name>
+# Skill template
 
-**Summary / Purpose:**
-A brief description of what the skill does and when it should be used.
+Copy this directory to a new skill folder and edit `SKILL.md`.
 
-**Owner:** @<github-user-or-team>
+## Checklist
 
-**Inputs:**
-- Describe DTOs, CLI args, or expected inputs.
+- [ ] Directory name is lowercase and uses hyphens
+- [ ] `name` matches the directory name
+- [ ] `description` says *what it does* and *when to use it*
+- [ ] Add `metadata.category` and useful keywords in `metadata.tags`
+- [ ] Keep `SKILL.md` concise; put long references in separate files
 
-**Outputs:**
-- Describe artifacts, files, or side-effects produced.
+## Example skeleton
 
-**Examples:**
-- Example invocation and sample output.
+```md
+---
+name: my-skill
+description: One sentence on what it does + when to use it.
+metadata:
+	category: docs
+	tags: "keywords here"
+---
 
-**Acceptance Criteria:**
-- What does success look like? How is failure reported?
+# Skill: my-skill
 
-**Testing Plan:**
-- Unit and/or integration tests that exercise this skill and expected outputs.
+## Steps
 
-**Implementation Guidance:**
-- Tools to use, typical commands, and required permissions.
-
-**Related Specs / Docs:**
-- Links to AGENT.md, relevant system/spec docs.
-
-**Stability / Version:**
-- `alpha|beta|stable` or semantic versioning note.
+1. ...
+```

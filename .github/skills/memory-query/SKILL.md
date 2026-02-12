@@ -1,29 +1,39 @@
+---
+name: memory-query
+description: Queries repo memory sources (MEMORY.md focus view + memory/{st,lt} engrams). Use when asked about prior decisions, conventions, or to locate a past design note.
+metadata:
+  category: memory
+  owner: p3nGu1nZz
+  version: "0.1"
+  tags: "memory engrams decisions history"
+---
+
 # Skill: memory-query
 
-**Name:** memory-query
+## What this skill does
 
-**Summary / Purpose:**
-Provides a standardized interface to query engrams (`/memory/st` + `/memory/lt`)
-and the `MEMORY.md` focus view.
+Standardizes how to answer questions like:
 
-**Owner:** @p3nGu1nZz
+- "Have we decided X already?"
+- "Where is the spec for Y?"
+- "What was the last consensus on Z?"
 
-**Inputs:**
-- query string (keywords, filters, date ranges)
+Sources:
 
-**Outputs:**
-- search results in JSON or markdown summary
+- `MEMORY.md` (high-signal focus view)
+- `memory/catalog.json`
+- `memory/st/**` (short-term engrams)
+- `memory/lt/**` (long-term engrams)
 
-**Examples:**
-- `memory-query "recent consensus on retry-policy" --format=json`
+## Procedure
 
-**Acceptance Criteria:**
-- Returns matching engrams and `MEMORY.md` snippets with provenance.
+1. Search `MEMORY.md` first for current focus and recent context.
+2. If needed, search `memory/catalog.json` and then the engram directories.
+3. When reporting results, include:
+   - file path(s)
+   - a short quote/snippet
+   - why it is relevant
 
-**Testing Plan:**
-- Unit: parse small engram samples
-- Integration: query over `test/fixtures/replays` with expected matches
+## Output format
 
-**Related Specs / Docs:**
-- `docs/specs/dev/components/SkillsLibrary.md`
-- `AGENT.md` (memory agent)
+Prefer a concise bullet list with citations to file paths.

@@ -10,27 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Find SKILL.md files
-        id: find
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Validate Agent Skills frontmatter
         run: |
-          files=$(git ls-files .github/skills/**/SKILL.md || true)
-          echo "::set-output name=files::$files"
-      - name: Validate SKILL.md required sections
-        run: |
-          set -e
-          files=$(git ls-files .github/skills/**/SKILL.md || true)
-          if [ -z "$files" ]; then
-            echo "No SKILL.md files found; skipping." && exit 0
-          fi
-          missing=0
-          for f in $files; do
-            echo "Checking $f"
-            for h in "Name:" "Summary" "Owner" "Inputs" "Outputs" "Acceptance Criteria"; do
-              if ! grep -qF "$h" "$f"; then
-                echo "Missing header '$h' in $f" && missing=1
-              fi
-            done
-          done
-          if [ "$missing" -ne 0 ]; then
-            echo "SKILL.md validation failed" && exit 1
-          fi
+          python3 scripts/skill_lint.py
