@@ -114,7 +114,7 @@ Run `dev/scripts/setup.sh` to automate these, or do them manually:
     ```
 
   > For stdio mode, provide auth via env (`GITHUB_PERSONAL_ACCESS_TOKEN`) and optionally filter toolsets via `GITHUB_TOOLSETS`.
-  > See `.env.example` and `docs/dev/ENVIRONMENT.md`.
+  > See `.env.example` and `docs/specs/dev/ENVIRONMENT.md`.
 - [ ] Smoke-test MCP read: `copilot -p "List open issues on p3nGu1nZz/Review-Cat using GitHub MCP tools" --mcp-config dev/mcp/github-mcp.json`
 - [ ] Smoke-test MCP write: `copilot -p "Create a GitHub Issue titled '[test] MCP smoke test' with body 'Delete me' on p3nGu1nZz/Review-Cat" --mcp-config dev/mcp/github-mcp.json`
 - [ ] Close/delete the smoke-test issue
@@ -130,7 +130,7 @@ Run `dev/scripts/setup.sh` to automate these, or do them manually:
   - `security`, `performance`, `architecture`, `testing`, `docs`
   - `priority-critical`, `priority-high`, `priority-medium`, `priority-low`
 
-  Reference: `docs/dev/GITHUB_LABELS.md` (taxonomy + lifecycle + claim-lock protocol).
+  Reference: `docs/specs/dev/GITHUB_LABELS.md` (taxonomy + lifecycle + claim-lock protocol).
 
 ### 0.3 — Directory Structure & Build Scaffold
 
@@ -284,7 +284,7 @@ With them, you have a self-driving development daemon.
   - [ ] For each: check if agent process is still running
   - [ ] Track worker container state + heartbeat TTL (via agent bus + docker state)
   - [ ] Consume WorkerState heartbeats and structured error reports as defined in `docs/specs/dev/SPECS.md` (AgentBusSystem)
-  - [ ] Apply retry/recovery/escalation policy from `docs/dev/ERROR_HANDLING.md`
+  - [ ] Apply retry/recovery/escalation policy from `docs/specs/dev/ERROR_HANDLING.md`
   - [ ] For completed workers: validate build/test passed
   - [ ] For passing workers: merge PR **into active release branch** via MCP, teardown worktree
   - [ ] Close issues only when the **release PR** (feature/* → main) is merged (or close explicitly as part of release finalization)
@@ -530,7 +530,7 @@ system equivalent to running Claude Code in an autonomous loop.
 
 - [ ] Single static binary via static linking
 - [ ] Comprehensive error messages (spdlog logging active from Phase 0)
-- [ ] End-user documentation (`docs/USAGE.md`, `docs/CONFIGURATION.md`)
+- [ ] End-user documentation (`docs/specs/app/USAGE.md`, `docs/specs/app/CONFIGURATION.md`)
 - [ ] CI/CD pipeline (GitHub Actions): CMake build, Catch2 tests, static analysis
 - [ ] README: build instructions, quick start, screenshots
 
@@ -553,7 +553,7 @@ system equivalent to running Claude Code in an autonomous loop.
   - [ ] C++ app: `--log-level` CLI flag (trace/debug/info/warn/error)
   - [ ] C++ app: UI sink for Log Viewer panel (no Dear ImGui dependency)
 - [ ] **Test infrastructure:**
-  - [ ] Reference: `docs/dev/TESTING_STRATEGY.md` (philosophy, conventions, determinism).
+  - [ ] Reference: `docs/specs/dev/TESTING_STRATEGY.md` (philosophy, conventions, determinism).
   - [ ] `scripts/test.sh` runs Catch2 binary + reports results
   - [ ] Record/replay fixtures for Copilot CLI responses
   - [ ] Golden file tests for demo output

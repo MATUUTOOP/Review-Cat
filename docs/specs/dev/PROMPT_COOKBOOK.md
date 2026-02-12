@@ -106,7 +106,7 @@ In practice, swarm-behavior changes usually also require updating one or more of
 
 - the relevant spec(s) under `docs/specs/`
 - `PLAN.md` / `TODO.md` if the change affects phases, workflow, or release tasks
-- `docs/dev/DIRECTOR_DEV_WORKFLOW.md` if it changes how the Director/workers operate
+- `DIRECTOR_DEV_WORKFLOW.md` if it changes how the Director/workers operate
 
 ## DirectorDev Heartbeat Prompts
 

@@ -30,7 +30,7 @@ This system serves two distinct contexts:
   - missing/expired credentials MUST fail fast with a clear remediation
     (and in the dev-harness context, should trigger `agent-blocked` escalation)
 
-Canonical label taxonomy and claim-comment format: `docs/dev/GITHUB_LABELS.md`.
+Canonical label taxonomy and claim-comment format: [`GITHUB_LABELS.md`](../GITHUB_LABELS.md).
 
 ## Interfaces
 
@@ -48,7 +48,7 @@ These operations are conceptually higher-level; they are implemented using the p
 - `claim_issue_lock(repo, issue_number, run_id, worker_id, release_branch?) -> void`
   - MUST remove `agent-task`
   - MUST add `agent-claimed`
-  - MUST add a `ReviewCat-Claim:` comment (see `docs/dev/GITHUB_LABELS.md`)
+  - MUST add a `ReviewCat-Claim:` comment (see [`GITHUB_LABELS.md`](../GITHUB_LABELS.md))
 - `reclaim_issue_lock(repo, issue_number, reason) -> void`
   - SHOULD add a `ReviewCat-Reclaim:` comment
   - SHOULD remove `agent-claimed`

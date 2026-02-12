@@ -56,7 +56,7 @@ Daemon mode that periodically runs reviews and can dispatch fixes.
 
 Runtime audits live under:
 
-- `docs/audits/<audit_id>/`
+- `~/.reviewcat/audits/<audit_id>/`
 
 Minimum artifacts (intended):
 
@@ -70,13 +70,13 @@ Minimum artifacts (intended):
 
 An index is maintained at:
 
-- `docs/audits/index.json`
+- `~/.reviewcat/audits/index.json`
 
 See also:
 
-- `docs/specs/app/components/AuditRecord.md`
-- `docs/specs/app/components/PromptRecord.md`
-- `docs/specs/dev/systems/AuditStoreSystem.md`
+- `components/AuditRecord.md`
+- `components/PromptRecord.md`
+- `../dev/systems/AuditStoreSystem.md`
 
 ## Review pipeline (conceptual)
 

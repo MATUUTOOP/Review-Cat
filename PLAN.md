@@ -123,12 +123,9 @@ Review-Cat/
 ├── docs/                   # Design docs and specifications (golden source)
 │   ├── INDEX.md            # Docs landing page (dev vs app)
 │   ├── ARCHITECTURE.md     # High-level architecture overview
-│   ├── dev/                # Dev harness docs + specs
-│   ├── app/                # Runtime app docs + specs
-│   ├── specs/              # Legacy monolithic spec tree (migration in progress)
-│   ├── DIRECTOR_DEV_WORKFLOW.md         # Legacy redirect stub → docs/dev/
-│   ├── IMPLEMENTATION_CHECKLIST.md      # Legacy redirect stub → docs/dev/
-│   └── PROMPT_COOKBOOK.md               # Legacy redirect stub → docs/dev/
+│   └── specs/              # Specs + track-specific docs
+│       ├── dev/            # Dev harness docs + specs
+│       └── app/            # Runtime app docs + specs
 │
 ├── scripts/                # Top-level convenience scripts
 │   ├── build.sh            # Build the app
@@ -181,7 +178,7 @@ entirely of **shell scripts** and **Copilot CLI agent profiles**:
 | Git ops | **libgit2** + **`git worktree`** | Programmatic git from C++; parallel worktrees for agents |
 | JSON | **nlohmann/json** | De facto C++ JSON library |
 | Config | **TOML** (`reviewcat.toml`) | Human-readable; parsed with `toml++` |
-| Testing | **Catch2** | Mature, header-only C++ test framework. See `docs/dev/TESTING_STRATEGY.md`. |
+| Testing | **Catch2** | Mature, header-only C++ test framework. See `docs/specs/dev/TESTING_STRATEGY.md`. |
 | Logging | **spdlog** | Fast, header-only C++ logging; structured dev harness logs |
 | Package manager | **vcpkg** or git submodules | Dependency management for C++ libs |
 | Distribution | Single static binary + shell | No runtime dependencies for end users |
@@ -406,7 +403,7 @@ while true; do
         ./dev/harness/review-self.sh
     fi
             Authentication for the stdio server is provided via environment variables (never commit secrets).
-            See `.env.example` and `docs/dev/ENVIRONMENT.md`.
+            See `.env.example` and `docs/specs/dev/ENVIRONMENT.md`.
 
     # 7. Sleep
     sleep "$INTERVAL"
@@ -615,7 +612,7 @@ Normative message framing and DTO field requirements live in:
 
 Retry/recovery policy and the canonical structured error DTO are documented in:
 
-- `docs/dev/ERROR_HANDLING.md`
+- `docs/specs/dev/ERROR_HANDLING.md`
 
 **Label taxonomy for agent coordination:**
 
@@ -629,7 +626,7 @@ Retry/recovery policy and the canonical structured error DTO are documented in:
 | `security` / `performance` / `architecture` / `testing` / `docs` | Persona category |
 | `priority-critical` / `priority-high` / `priority-medium` / `priority-low` | Severity |
 
-For the full label taxonomy, lifecycle diagrams, and the issue-claim lock protocol, see `docs/dev/GITHUB_LABELS.md`.
+For the full label taxonomy, lifecycle diagrams, and the issue-claim lock protocol, see `docs/specs/dev/GITHUB_LABELS.md`.
 
 ### 5.6. Guardrails
 

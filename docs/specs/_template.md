@@ -28,10 +28,8 @@ A checklist of conditions that must be true for the implementation to be conside
 
 ReviewCat uses a **two-track** structure:
 
-- Dev harness docs: `docs/dev/`
-- Runtime app docs: `docs/app/`
-- Dev harness specs: `docs/specs/dev/`
-- Runtime app specs: `docs/specs/app/`
+- Dev harness docs + specs: `docs/specs/dev/`
+- Runtime app docs + specs: `docs/specs/app/`
 
 If you are creating a new spec, place it under the appropriate `docs/specs/{dev|app}/` subtree.
 

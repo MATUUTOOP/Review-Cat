@@ -39,5 +39,6 @@ Some systems are used in both dev and runtime contexts. Canonical location is un
 
 ## Related docs
 
-- Director workflow: [`docs/dev/DIRECTOR_DEV_WORKFLOW.md`](../../dev/DIRECTOR_DEV_WORKFLOW.md)
-- Containers + worktrees: [`docs/dev/CONTAINERS_AND_WORKTREES.md`](../../dev/CONTAINERS_AND_WORKTREES.md)
+- Director workflow: [`DIRECTOR_DEV_WORKFLOW.md`](DIRECTOR_DEV_WORKFLOW.md)
+- Containers + worktrees: [`CONTAINERS_AND_WORKTREES.md`](CONTAINERS_AND_WORKTREES.md)
+- Dev harness configuration: [`CONFIGURATION.md`](CONFIGURATION.md)

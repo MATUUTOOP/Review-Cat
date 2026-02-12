@@ -46,5 +46,5 @@ This repository is currently **planning/specs-first**. The runtime application (
 
 ## Related
 
-- Dev harness config: `docs/dev/CONFIGURATION.md` and `config/dev.toml`
+- Dev harness config: [`docs/specs/dev/CONFIGURATION.md`](../dev/CONFIGURATION.md) and `config/dev.toml`
 - `PLAN.md` (runtime architecture)

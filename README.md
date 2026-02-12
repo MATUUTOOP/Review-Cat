@@ -79,9 +79,9 @@ Review-Cat/
 ├── docs/                   # Design docs & specifications
 │   ├── INDEX.md            # Documentation landing page
 │   ├── ARCHITECTURE.md     # High-level architecture overview
-│   ├── dev/                # Dev harness docs
-│   ├── app/                # Runtime app docs
-│   └── specs/              # Legacy monolithic spec tree (migration in progress)
+│   └── specs/              # Specs + track-specific docs
+│       ├── dev/            # Dev harness docs + specs
+│       └── app/            # Runtime app docs + specs
 │
 ├── scripts/                # Top-level build/test/clean scripts
 ├── config/                 # Dev harness config (e.g., config/dev.toml)
@@ -146,7 +146,7 @@ GitHub integration for agents is via the GitHub MCP Server. Example MCP configs 
 - `dev/mcp/github-mcp-docker.json` (local Docker container; stdio; offline-friendly)
 - `dev/mcp/github-mcp-stdio.json` (local stdio binary; fallback/offline)
 
-Secrets (PATs) are provided via environment variables. See `.env.example` and `docs/dev/ENVIRONMENT.md`.
+Secrets (PATs) are provided via environment variables. See `.env.example` and `docs/specs/dev/ENVIRONMENT.md`.
 
 The Director’s scheduling, timeouts, worker telemetry, and agent-bus networking are configured via `config/dev.toml`.
 
@@ -191,9 +191,9 @@ validates via build + test, and commits. See [PLAN.md](PLAN.md) §5 for details.
 | [AGENT.md](AGENT.md) | Agent system overview: roles, guardrails, agent bus, memory protocol |
 | [Docs Index](docs/INDEX.md) | Documentation landing page (dev vs app) |
 | [Architecture](docs/ARCHITECTURE.md) | Cross-cutting architecture + safety model |
-| [Director Workflow](docs/dev/DIRECTOR_DEV_WORKFLOW.md) | DirectorDev recursive development spec |
-| [Implementation Checklist](docs/dev/IMPLEMENTATION_CHECKLIST.md) | Step-by-step checklist |
-| [Prompt Cookbook](docs/dev/PROMPT_COOKBOOK.md) | Curated prompt patterns |
+| [Director Workflow](docs/specs/dev/DIRECTOR_DEV_WORKFLOW.md) | DirectorDev recursive development spec |
+| [Implementation Checklist](docs/specs/dev/IMPLEMENTATION_CHECKLIST.md) | Step-by-step checklist |
+| [Prompt Cookbook](docs/specs/dev/PROMPT_COOKBOOK.md) | Curated prompt patterns |
 | [Specs (Dev)](docs/specs/dev/SPECS.md) | Dev harness agent + orchestration specifications |
 | [Specs (App)](docs/specs/app/SPECS.md) | Runtime app component/entity/system specifications |
 

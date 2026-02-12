@@ -90,6 +90,6 @@ These are **intended** (not yet implemented):
 
 ## Related docs
 
-- `docs/dev/CONFIGURATION.md`
-- `docs/app/CONFIGURATION.md`
+- `CONFIGURATION.md`
+- `../app/CONFIGURATION.md`
 - `PLAN.md` (MCP section)

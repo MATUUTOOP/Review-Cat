@@ -16,6 +16,7 @@ This file is a **bounded, shared “what matters right now” focus view**.
 
 ## Current focus
 
+- (docs) Canonicalize docs + specs under `docs/specs/{dev,app}/` (done).
 - (bootstrap) Stand up Phase 0 dev harness scaffold and get the build/test gate green.
 
 ## Active constraints
@@ -25,7 +26,11 @@ This file is a **bounded, shared “what matters right now” focus view**.
 
 ## Recent high-signal (ST)
 
-- (placeholder) Populate from latest `memory/st/<batch_id>/engram_<engram_id>.json` engrams.
+- Docs re-org: `docs/dev/` and `docs/app/` were migrated into `docs/specs/dev/` and `docs/specs/app/`.
+	- All repo links should target `docs/specs/**` (old `docs/dev/**` and `docs/app/**` paths are obsolete).
+	- Track entry points:
+		- Dev: `docs/specs/dev/INDEX.md`
+		- App: `docs/specs/app/INDEX.md`
 
 ## Durable conventions (LT pointers)
 
@@ -40,4 +45,4 @@ This file is a **bounded, shared “what matters right now” focus view**.
 
 ## Last updated
 
-- 2026-02-11 (initial stub)
+- 2026-02-12

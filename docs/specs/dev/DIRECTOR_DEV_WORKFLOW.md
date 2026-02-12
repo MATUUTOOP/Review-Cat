@@ -21,12 +21,12 @@ other continuously.
 > **See also:** [PLAN.md](../../PLAN.md) §5 for heartbeat architecture,
 > [AGENT.md](../../AGENT.md) for the swarm operating contract,
 > [TODO.md](../../TODO.md) Phase 0–1 for implementation tasks, and
-> [`docs/ARCHITECTURE.md`](../ARCHITECTURE.md) for cross-cutting architecture
+> [`docs/ARCHITECTURE.md`](../../ARCHITECTURE.md) for cross-cutting architecture
 > context.
 
 Reliability policy (retries, recovery, escalation) is documented in:
 
-- `docs/dev/ERROR_HANDLING.md`
+- [`ERROR_HANDLING.md`](ERROR_HANDLING.md)
 
 The key intent is **fully autonomous operation by default**: the Director runs
 indefinitely and advances the loop without waiting for humans or interactive
@@ -58,7 +58,7 @@ last-seen SHAs/hashes). It is never committed.
 
 Recommended minimum fields + an example JSON are specified in:
 
-- `docs/specs/dev/components/StateFile.md`
+- `components/StateFile.md`
 
 ## Roles
 
@@ -185,7 +185,7 @@ render a live task graph and provide operator controls (start/stop/pause).
   - this pulls in updated specs/protocols
   - this pulls in newly merged engrams under `/memory/` (durable shared memory)
 
-  The Director can enforce this using drift thresholds from `config/dev.toml` (`[policy.sync_main]`) and agent-bus messages like `sync_required` / `protocol_incompatibility` (see `docs/specs/dev/systems/AgentBusSystem.md`).
+  The Director can enforce this using drift thresholds from `config/dev.toml` (`[policy.sync_main]`) and agent-bus messages like `sync_required` / `protocol_incompatibility` (see `systems/AgentBusSystem.md`).
 5. **Validate** — `./scripts/build.sh && ./scripts/test.sh`.
 6. **Create PR** — Via GitHub MCP targeting the active release branch and using
    `Refs #<issue>` (the release PR is what closes issues on merge to `main`).
@@ -231,7 +231,7 @@ Agents communicate through GitHub's native features:
 | **Labels** | Categorization and routing | `agent-task`, `security`, `in-progress` |
 | **Linked issues** | Traceability | Worker PR says "Refs #42"; release PR aggregates "Closes #42" |
 
-Canonical reference: `docs/dev/GITHUB_LABELS.md`.
+Canonical reference: [`GITHUB_LABELS.md`](GITHUB_LABELS.md).
 
 ### Issue claiming (exclusive lock)
 
@@ -338,34 +338,3 @@ If a worker is mid-edit and safe to discard, it may reset its worktree back to
 and restart at the next safe point.
 
 ## Recursive and Circular Behavior
-
-DirectorDev is recursive in the sense that:
-
-- If a spec requires new subsystems, DirectorDev creates additional specs first.
-- Each new spec becomes a new loop iteration.
-
-DirectorDev is circular in the sense that:
-
-- Self-review generates issues → coding agents fix them → PRs merge →
-  self-review runs again on the updated code.
-- This loop continues indefinitely while the daemon is active.
-
-This keeps work modular and avoids monolithic changes, while enabling continuous
-self-improvement of the ReviewCat codebase.
-
-## How to Demonstrate
-
-- Run one small DirectorDev cycle:
-  ```bash
-  ./dev/scripts/daemon.sh  # or run a single cycle manually
-  ```
-- Show:
-  - the spec file or GitHub Issue being implemented
-  - the worktree created for the work
-  - the resulting code change (`git diff`)
-  - the test run (`./scripts/test.sh`)
-  - the PR created via GitHub MCP
-  - the prompt ledger (`dev/audits/<bundle>/ledger/`)
-
-The prompt ledger is the proof that Copilot CLI was used meaningfully,
-not just incidentally.

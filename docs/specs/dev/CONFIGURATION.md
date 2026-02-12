@@ -11,14 +11,14 @@ It covers:
 - memory sync budgets and paths
 - request pacing for GitHub + model calls
 
-Secrets (tokens) are **not** stored in TOML. See `docs/dev/ENVIRONMENT.md`.
+Secrets (tokens) are **not** stored in TOML. See [`ENVIRONMENT.md`](ENVIRONMENT.md).
 
 ## Configuration layers
 
 For the dev harness, the intended precedence is:
 
 1. CLI flags (planned)
-2. Environment overrides (planned; see `docs/dev/ENVIRONMENT.md`)
+2. Environment overrides (planned; see [`ENVIRONMENT.md`](ENVIRONMENT.md))
 3. `config/dev.toml`
 4. Built-in defaults
 
@@ -59,7 +59,7 @@ Related:
 
 ### `[agent_bus]`
 
-Agent bus = swarm control plane (real-time telemetry + control). See `docs/specs/dev/systems/AgentBusSystem.md`.
+Agent bus = swarm control plane (real-time telemetry + control). See [`systems/AgentBusSystem.md`](systems/AgentBusSystem.md).
 
 - `mode` — `director_broker` for MVP
 - `listen_addr`, `listen_port` — Director broker bind address/port
@@ -88,7 +88,7 @@ Defines shared memory budgets/paths and the tracked focus view.
 Related:
 
 - Issue #13 (memory sync protocol)
-- `docs/specs/dev/systems/MemorySyncSystem.md`
+- `systems/MemorySyncSystem.md`
 
 ### `[rate_limits.github]` and `[rate_limits.model]`
 
@@ -100,10 +100,10 @@ Swarm-level pacing knobs:
 
 Related:
 
-- `docs/specs/dev/systems/RequestBudgetSystem.md`
+- `systems/RequestBudgetSystem.md`
 
 ## Related docs/specs
 
-- `docs/dev/DIRECTOR_DEV_WORKFLOW.md`
-- `docs/specs/dev/systems/WorktreeSystem.md`
-- `docs/specs/dev/agents/DirectorDevAgent.md`
+- `DIRECTOR_DEV_WORKFLOW.md`
+- `systems/WorktreeSystem.md`
+- `agents/DirectorDevAgent.md`

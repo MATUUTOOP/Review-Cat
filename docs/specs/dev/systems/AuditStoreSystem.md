@@ -6,7 +6,7 @@
 
 The base path is context-dependent:
 
-- **Runtime app** (end-user reviews): `docs/audits/<audit_id>/`
+- **Runtime app** (end-user reviews): `~/.reviewcat/audits/<audit_id>/`
 - **Dev harness** (self-improvement cycles): `dev/audits/<audit_id>/`
 
 ## Requirements
@@ -17,7 +17,7 @@ The base path is context-dependent:
 4. Must support archiving older audits.
 5. Must log all write operations via LoggingSystem.
 
-**See also:** `docs/dev/AUDIT_SYSTEM.md` for a comprehensive guide and bundle examples.
+**See also:** [`AUDIT_SYSTEM.md`](../AUDIT_SYSTEM.md) for a comprehensive guide and bundle examples.
 
 ## Interfaces
 

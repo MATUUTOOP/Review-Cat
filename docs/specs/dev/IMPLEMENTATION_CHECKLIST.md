@@ -1,7 +1,7 @@
 # ReviewCat Implementation Checklist
 
 This is a practical checklist aligned to [PLAN.md](../../PLAN.md) and the
-architecture overview ([docs/ARCHITECTURE.md](../ARCHITECTURE.md)). It is
+architecture overview ([docs/ARCHITECTURE.md](../../ARCHITECTURE.md)). It is
 intentionally explicit and sequential.
 
 > **Tech stack:** C++17/20, CMake, bash shell scripts. See PLAN.md §3 and §10.
@@ -126,7 +126,7 @@ intentionally explicit and sequential.
 
 - [ ] Produce single static binary (`reviewcat`) via static linking.
 - [ ] Comprehensive error messages (spdlog logging active from Phase 0).
-- [ ] End-user documentation (`docs/USAGE.md`, `docs/CONFIGURATION.md`).
+- [ ] End-user documentation (`docs/specs/app/USAGE.md`, `docs/specs/app/CONFIGURATION.md`).
 - [ ] Man page or `--help` with detailed subcommand docs.
 - [ ] CI/CD pipeline (GitHub Actions): CMake build, Catch2 tests, static analysis.
 - [ ] README: one-command demo, build instructions, quick start, troubleshooting.

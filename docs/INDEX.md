@@ -15,24 +15,24 @@ Cross-cutting overview:
 
 Start here:
 
-- [`docs/dev/INDEX.md`](dev/INDEX.md)
+- [`docs/specs/dev/INDEX.md`](specs/dev/INDEX.md)
 
 Key pages:
 
-- Environment variables and secrets: [`docs/dev/ENVIRONMENT.md`](dev/ENVIRONMENT.md)
-- Dev harness configuration: [`docs/dev/CONFIGURATION.md`](dev/CONFIGURATION.md)
-- Containers + worktrees (execution model): [`docs/dev/CONTAINERS_AND_WORKTREES.md`](dev/CONTAINERS_AND_WORKTREES.md)
+- Environment variables and secrets: [`docs/specs/dev/ENVIRONMENT.md`](specs/dev/ENVIRONMENT.md)
+- Dev harness configuration: [`docs/specs/dev/CONFIGURATION.md`](specs/dev/CONFIGURATION.md)
+- Containers + worktrees (execution model): [`docs/specs/dev/CONTAINERS_AND_WORKTREES.md`](specs/dev/CONTAINERS_AND_WORKTREES.md)
 
 ## Runtime app docs
 
 Start here:
 
-- [`docs/app/INDEX.md`](app/INDEX.md)
+- [`docs/specs/app/INDEX.md`](specs/app/INDEX.md)
 
 Key pages:
 
-- Runtime CLI + artifacts: [`docs/app/USAGE.md`](app/USAGE.md)
-- App configuration: [`docs/app/CONFIGURATION.md`](app/CONFIGURATION.md)
+- Runtime CLI + artifacts: [`docs/specs/app/USAGE.md`](specs/app/USAGE.md)
+- App configuration: [`docs/specs/app/CONFIGURATION.md`](specs/app/CONFIGURATION.md)
 
 ## Specs
 

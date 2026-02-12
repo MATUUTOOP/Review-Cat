@@ -67,8 +67,8 @@ can create issues/PRs/comments via GitHub tooling.
 
 Key docs:
 
-- Usage + artifacts: [`docs/app/USAGE.md`](app/USAGE.md)
-- App configuration (planned): [`docs/app/CONFIGURATION.md`](app/CONFIGURATION.md)
+- Usage + artifacts: [`docs/specs/app/USAGE.md`](specs/app/USAGE.md)
+- App configuration (planned): [`docs/specs/app/CONFIGURATION.md`](specs/app/CONFIGURATION.md)
 - Runtime specs: `docs/specs/app/`
 
 ## Dev harness (self-building)
@@ -81,9 +81,9 @@ The dev harness is the repo’s autonomous development coordinator:
 
 Key docs:
 
-- Director workflow: [`docs/dev/DIRECTOR_DEV_WORKFLOW.md`](dev/DIRECTOR_DEV_WORKFLOW.md)
-- Labels/claiming protocol: [`docs/dev/GITHUB_LABELS.md`](dev/GITHUB_LABELS.md)
-- Error handling + escalation: [`docs/dev/ERROR_HANDLING.md`](dev/ERROR_HANDLING.md)
+- Director workflow: [`docs/specs/dev/DIRECTOR_DEV_WORKFLOW.md`](specs/dev/DIRECTOR_DEV_WORKFLOW.md)
+- Labels/claiming protocol: [`docs/specs/dev/GITHUB_LABELS.md`](specs/dev/GITHUB_LABELS.md)
+- Error handling + escalation: [`docs/specs/dev/ERROR_HANDLING.md`](specs/dev/ERROR_HANDLING.md)
 - Dev harness specs: `docs/specs/dev/`
 
 ## Copilot CLI + GitHub MCP integration

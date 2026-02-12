@@ -42,7 +42,7 @@ issues/comments/labels, and true blockers are escalated via `agent-blocked`.
   - memory catalog hash mismatches may trigger required sync
   - enforcement thresholds come from `config/dev.toml` (`[policy.sync_main]`)
 
-Canonical label taxonomy and claim-comment format: `docs/dev/GITHUB_LABELS.md`.
+Canonical label taxonomy and claim-comment format: `docs/specs/dev/GITHUB_LABELS.md`.
 
 ## Interfaces
 
@@ -78,7 +78,7 @@ invoked via `copilot -p @.github/agents/<role>.md "..."`.
 - Safety: no network actions without opt-in configuration (non-interactive enablement).
 - Logging: every heartbeat iteration logged via `dev/harness/log.sh`.
 - MCP Server is configured via either remote HTTP MCP or a native `github-mcp-server stdio` binary (host or container-bundled).
-  Example MCP configs live under `dev/mcp/`. See `docs/dev/ENVIRONMENT.md`.
+  Example MCP configs live under `dev/mcp/`. See `docs/specs/dev/ENVIRONMENT.md`.
 
 ## References
 

@@ -34,4 +34,5 @@ This index groups specs by **runtime app** concern.
 
 ## Related docs
 
-- App configuration: [`docs/app/CONFIGURATION.md`](../../app/CONFIGURATION.md)
+- App configuration: [`CONFIGURATION.md`](CONFIGURATION.md)
+- Runtime usage (CLI + artifacts): [`USAGE.md`](USAGE.md)

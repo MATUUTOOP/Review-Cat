@@ -32,7 +32,10 @@ dev/audits/<audit_id>/
 
 ## Interfaces
 
-Stored as `docs/audits/<audit_id>/audit.json`.
+Stored as `<audit_base>/<audit_id>/audit.json`, where `audit_base` is context-dependent:
+
+- Runtime app (end-user): `~/.reviewcat/audits`
+- Dev harness: `dev/audits`
 
 Recommended fields:
 
@@ -60,7 +63,7 @@ Recommended fields:
 
 - `audit.json` is written on both success and failure.
 - If a run fails mid-way, `status=partial` and errors are recorded.
-- Artifact paths are relative to repo root.
+- Artifact paths are relative (no absolute local paths by default).
 
 ## Test cases
 

@@ -212,7 +212,7 @@ Workers communicate using stable JSON DTOs (schemas specified in planning issues
 Error classification, retry/backoff guidance, and the canonical error DTO fields
 are documented in:
 
-- `docs/dev/ERROR_HANDLING.md`
+- `docs/specs/dev/ERROR_HANDLING.md`
 
 Normative envelope framing and DTO field requirements live in:
 

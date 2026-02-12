@@ -55,22 +55,6 @@ app/tests/fixtures/
   repos/         # tiny seed repos for git tests (or generated at runtime)
 ```
 
-## Repository-level test layout (canonical)
-
-The repository uses a top-level `test/` directory to host examples, runner
-contracts, and language-agnostic conventions for test discovery:
-
-- `test/unit/`, `test/integration/`, `test/bench/`, `test/e2e/`, `test/fuzz/`, `test/fixtures/`
-
-The full conventions and CI expectations are specified in:
-
-`docs/specs/dev/components/TestDirectory.md` (new).
-
-**Runner contract (proposal):** a small wrapper (`scripts/test.sh`) is
-expected to accept flags `--unit/--integration/--bench/--all` and optional
-`--junit-output` / `--bench-output` arguments. The exact script implementation
-is planned and captured in `docs/specs/dev/components/TestDirectory.md`.
-
 ## The green gate
 
 The Director’s validation contract is:
@@ -97,5 +81,3 @@ When CI is added, PRs must be blocked on:
 - `PLAN.md` (tech stack and phases)
 - `TODO.md` (testing infrastructure tasks)
 - `docs/specs/app/systems/CopilotRunnerSystem.md` (record/replay mode)
-
-

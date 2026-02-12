@@ -70,7 +70,7 @@ follow normal test semantics (0 for success, non-zero for failure).
 ## Acceptance criteria
 
 - [ ] `test/` exists with the canonical subdir layout and `README.md` files
-- [ ] `docs/dev/TESTING_STRATEGY.md` references this spec and the runner contract
+- [ ] `docs/specs/dev/TESTING_STRATEGY.md` references this spec and the runner contract
 - [ ] `scripts/test.sh` specification exists in docs (implementation later)
 - [ ] CI job contracts defined (PR/unit gate; integration on-demand/merge; scheduled benchmarks)
 
@@ -93,7 +93,7 @@ follow normal test semantics (0 for success, non-zero for failure).
 ## Related
 
 - Issue #30 — Tests: Create `/test` directory (unit/integration/bench/etc)
-- `docs/dev/TESTING_STRATEGY.md`
+- `docs/specs/dev/TESTING_STRATEGY.md`
 
 **Phase:** Phase 0/1 — Testing & QA  
 **Component:** Testing / CI  

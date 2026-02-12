@@ -8,4 +8,4 @@ This section describes the **end-user product**: the ReviewCat CLI/daemon/UI.
 
 ## Specs
 
-- Runtime app specs index: [`docs/specs/app/SPECS.md`](../specs/app/SPECS.md)
+- Runtime app specs index: [`SPECS.md`](SPECS.md)

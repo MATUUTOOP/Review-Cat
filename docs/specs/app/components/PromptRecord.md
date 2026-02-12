@@ -17,7 +17,12 @@ It is written to the prompt ledger and is intended to be sufficient to reproduce
 
 Stored as JSON Lines in:
 
-- `docs/audits/<audit_id>/ledger/copilot_prompts.jsonl`
+- `<audit_base>/<audit_id>/ledger/copilot_prompts.jsonl`
+
+Where `audit_base` is context-dependent:
+
+- Runtime app (end-user): `~/.reviewcat/audits`
+- Dev harness: `dev/audits`
 
 Fields:
 

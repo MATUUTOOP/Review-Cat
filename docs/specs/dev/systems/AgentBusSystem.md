@@ -202,7 +202,7 @@ Payload:
 	- `last_stdout_tail` (string, optional)
 	- `last_stderr_tail` (string, optional)
 
-> The canonical retry/backoff + escalation rules live in `docs/dev/ERROR_HANDLING.md`.
+> The canonical retry/backoff + escalation rules live in `docs/specs/dev/ERROR_HANDLING.md`.
 
 ### `project_state_snapshot.v1`
 
