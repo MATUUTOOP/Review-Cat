@@ -15,7 +15,7 @@ Secrets must **never** be committed. Use `.env` (gitignored) locally.
 
 Used by `github-mcp-server` when running in **stdio** mode.
 
-- Required for: `dev/mcp/github-mcp-stdio.json`
+- Required for: `dev/mcp/github-mcp-stdio.json`, `dev/mcp/github-mcp-docker.json`
 - Not required for: `dev/mcp/github-mcp.json` (remote HTTP MCP)
 
 Never log this value.
@@ -39,6 +39,10 @@ URL for the **remote HTTP MCP** server (MVP default):
 If you use the remote MCP server, you typically run Copilot CLI with:
 
 - `--mcp-config dev/mcp/github-mcp.json`
+
+If you use the local Docker MCP server, run Copilot CLI with:
+
+- `--mcp-config dev/mcp/github-mcp-docker.json`
 
 ### `GITHUB_MCP_SERVER_PATH` (non-secret)
 

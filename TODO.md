@@ -79,6 +79,27 @@ Run `dev/scripts/setup.sh` to automate these, or do them manually:
       }
     }
     ```
+  - `dev/mcp/github-mcp-docker.json` — local Docker `github-mcp-server` (stdio; offline-friendly)
+    ```json
+    {
+      "mcpServers": {
+        "github": {
+          "command": "docker",
+          "args": [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "GITHUB_PERSONAL_ACCESS_TOKEN",
+            "ghcr.io/github/github-mcp-server"
+          ],
+          "env": {
+            "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+          }
+        }
+      }
+    }
+    ```
   - `dev/mcp/github-mcp-stdio.json` — local `github-mcp-server` (fallback/offline)
     ```json
     {

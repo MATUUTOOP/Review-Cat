@@ -143,6 +143,7 @@ Recommended host health checks:
 GitHub integration for agents is via the GitHub MCP Server. Example MCP configs live in `dev/mcp/`:
 
 - `dev/mcp/github-mcp.json` (remote HTTP MCP; preferred MVP)
+- `dev/mcp/github-mcp-docker.json` (local Docker container; stdio; offline-friendly)
 - `dev/mcp/github-mcp-stdio.json` (local stdio binary; fallback/offline)
 
 Secrets (PATs) are provided via environment variables. See `.env.example` and `docs/dev/ENVIRONMENT.md`.
