@@ -101,7 +101,7 @@ The Director also logs each heartbeat to `dev/audits/director.log`.
 
 The Director runs as a **bash heartbeat daemon** (`dev/harness/director.sh`).
 For day-to-day operation we recommend a keep-alive supervisor wrapper
-(`dev/harness/daemon.sh`) that restarts the Director cleanly and coordinates
+(`dev/scripts/daemon.sh`) that restarts the Director cleanly and coordinates
 upgrade safe points.
 See [PLAN.md](../PLAN.md) §5 for the full heartbeat loop pseudocode.
 
@@ -242,11 +242,10 @@ To cold-start the Director for the first time:
 cd Review-Cat
 ./dev/scripts/setup.sh        # Install prereqs (gh, jq, github-mcp-server)
 ./dev/scripts/bootstrap.sh    # Configure MCP, create issues, verify build
-./dev/harness/daemon.sh       # Start supervisor + Director (recommended)
+  ./dev/scripts/daemon.sh       # Start supervisor + Director (recommended)
 ```
 
-(`dev/harness/director.sh` remains the underlying heartbeat loop; `daemon.sh`
-adds keep-alive + upgrade coordination.)
+(`dev/harness/director.sh` remains the underlying heartbeat loop; `dev/scripts/daemon.sh` adds keep-alive + upgrade coordination.)
 
 ## Guardrails
 
@@ -297,7 +296,7 @@ self-improvement of the ReviewCat codebase.
 
 - Run one small DirectorDev cycle:
   ```bash
-  ./dev/harness/daemon.sh  # or run a single cycle manually
+  ./dev/scripts/daemon.sh  # or run a single cycle manually
   ```
 - Show:
   - the spec file or GitHub Issue being implemented

@@ -419,7 +419,7 @@ To cold-start the Director for the first time:
 cd Review-Cat
 ./dev/scripts/setup.sh        # Install system prereqs (gh, jq, github-mcp-server)
 ./dev/scripts/bootstrap.sh    # Configure MCP, create issues, verify build
-./dev/harness/daemon.sh       # Start keep-alive supervisor (starts Director loop)
+./dev/scripts/daemon.sh       # Start keep-alive supervisor (starts Director loop)
 ```
 
 `setup.sh` installs:

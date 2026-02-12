@@ -21,7 +21,7 @@ sequential.
 - [ ] Write `scripts/test.sh` — run Catch2 test binary.
 - [ ] Write `scripts/clean.sh` — remove build artifacts.
 - [ ] Write `dev/harness/log.sh` — shared logging functions for bash scripts.
-- [ ] Write `dev/harness/daemon.sh` — keep-alive supervisor for Agent 0 (starts/restarts `dev/harness/director.sh`).
+- [ ] Write `dev/scripts/daemon.sh` — keep-alive supervisor for Agent 0 (starts/restarts `dev/harness/director.sh`).
 - [ ] Write `dev/harness/director.sh` — Director heartbeat loop skeleton (Agent 0).
 - [ ] Write `dev/harness/run-cycle.sh` — agent cycle orchestration.
 - [ ] Write `dev/scripts/setup.sh` — install system prereqs (gh, jq, github-mcp-server).

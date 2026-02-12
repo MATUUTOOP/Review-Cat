@@ -110,7 +110,7 @@ In practice, swarm-behavior changes usually also require updating one or more of
 
 ## DirectorDev Heartbeat Prompts
 
-The Director (recommended entry: `dev/harness/daemon.sh`; underlying loop:
+The Director (recommended entry: `dev/scripts/daemon.sh`; underlying loop:
 `dev/harness/director.sh`) uses these prompt patterns when delegating to role
 agents:
 

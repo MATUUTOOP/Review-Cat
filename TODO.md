@@ -269,7 +269,7 @@ interruptions (container restarts, transient failures) and coordinating
   - [ ] Stores **local cached state** only (never committed)
   - [ ] Used to detect first-run vs resume after restart
 
-- [ ] Write `dev/harness/daemon.sh` — Supervisor daemon:
+- [ ] Write `dev/scripts/daemon.sh` — Supervisor daemon:
   - [ ] Starts `dev/harness/director.sh` as a child process
   - [ ] Keep-alive: if Director exits unexpectedly, restart with backoff
   - [ ] Writes/updates `STATE.json` with last-seen heartbeat + current release context
@@ -341,7 +341,7 @@ interruptions (container restarts, transient failures) and coordinating
   - [ ] Create initial GitHub Issues for remaining Phase 0 items
   - [ ] Run `./scripts/build.sh` to verify C++ scaffold compiles
   - [ ] Run `dev/harness/review-self.sh` to seed first issues
-  - [ ] Print: "Bootstrap complete. Run: ./dev/harness/daemon.sh"
+  - [ ] Print: "Bootstrap complete. Run: ./dev/scripts/daemon.sh"
 
 ### 0.10 — Initial Backlog & First Issues
 
@@ -360,7 +360,7 @@ system equivalent to running Claude Code in an autonomous loop.
 
 - [ ] Run `./dev/scripts/setup.sh` — verify all tools installed
 - [ ] Run `./dev/scripts/bootstrap.sh` — verify clean exit
-- [ ] Run `./dev/harness/daemon.sh` — let it execute **one full heartbeat** (supervisor + Director)
+- [ ] Run `./dev/scripts/daemon.sh` — let it execute **one full heartbeat** (supervisor + Director)
 - [ ] Verify: Director read open issues (printed to log)
 - [ ] Verify: Director created a worktree for an issue
 - [ ] Verify: Copilot CLI agent was invoked in the worktree with `--allow-tools write`

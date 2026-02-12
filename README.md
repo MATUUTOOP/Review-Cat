@@ -152,7 +152,7 @@ Phase 0 scaffold + scripts exist):
 ./dev/scripts/bootstrap.sh
 
 # Start daemon supervisor + Director (Agent 0)
-./dev/harness/daemon.sh
+./dev/scripts/daemon.sh
 ```
 
 The dev harness operates in **release cycles**:

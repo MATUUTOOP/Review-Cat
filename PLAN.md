@@ -87,8 +87,7 @@ Review-Cat/
 │
 ├── dev/                    # The meta-tooling — what builds the product
 │   ├── agents/             # Development role agent prompt files
-│   ├── harness/            # Supervisor + heartbeat daemon shell scripts
-│   │   ├── daemon.sh       # Keep-alive supervisor (recommended entrypoint)
+│   ├── harness/            # Director heartbeat + helper scripts
 │   │   ├── director.sh     # Director heartbeat loop (Agent 0)
 │   │   ├── run-cycle.sh    # Single task cycle orchestration
 │   │   ├── worktree.sh     # Worktree create/teardown helpers
@@ -98,6 +97,7 @@ Review-Cat/
 │   ├── prompts/            # Prompt templates for dev agents
 │   ├── mcp/               # MCP config files (github-mcp.json)
 │   ├── scripts/            # Dev harness setup and utility scripts
+│   │   ├── daemon.sh       # Keep-alive supervisor (recommended entrypoint)
 │   │   ├── setup.sh        # Install system prerequisites
 │   │   └── bootstrap.sh    # One-shot project initialization
 │   └── audits/             # Development audit bundles
@@ -255,7 +255,7 @@ built — they operate purely via Copilot CLI, bash, and GitHub MCP:
 
 | Agent | Role | How It Runs |
 |-------|------|-------------|
-| **Director (Agent 0)** | Orchestrator | `dev/harness/daemon.sh` (recommended) → starts `dev/harness/director.sh` heartbeat loop |
+| **Director (Agent 0)** | Orchestrator | `dev/scripts/daemon.sh` (recommended) → starts `dev/harness/director.sh` heartbeat loop |
 | **Architect** | Design reviewer | `copilot -p @dev/agents/architect.md "..."` |
 | **Implementer** | Code writer | `copilot -p @dev/agents/implementer.md "..."` in worktree |
 | **Coder** | Fix implementer | `copilot -p @dev/agents/coder.md "..."` in worktree |
@@ -643,10 +643,10 @@ cd Review-Cat
 #   - Creates initial GitHub Issues for Phase 0 tasks
 #   - Runs ./scripts/build.sh to verify C++ scaffold compiles
 #   - Runs initial self-review to seed first issues
-#   - Prints: "Bootstrap complete. Run: ./dev/harness/daemon.sh"
+#  - Prints: "Bootstrap complete. Run: ./dev/scripts/daemon.sh"
 
 # 4. Start supervisor + Director daemon
-./dev/harness/daemon.sh
+./dev/scripts/daemon.sh
 # Director will:
 #   - Read open issues labeled 'agent-task'
 #   - Create worktrees for parallel work
@@ -812,7 +812,7 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
   github-mcp-server binary, verify toolchain).
 - Write `dev/scripts/bootstrap.sh` (configure MCP, create initial issues,
   set up labels, verify build).
-- Write `dev/harness/daemon.sh` (keep-alive supervisor for Agent 0).
+- Write `dev/scripts/daemon.sh` (keep-alive supervisor for Agent 0).
 - Write `dev/harness/director.sh` (heartbeat daemon with worktree management).
 - Write `dev/harness/run-cycle.sh` (agent cycle in worktree).
 - Write `dev/harness/worktree.sh` (create/teardown helpers).

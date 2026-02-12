@@ -17,7 +17,7 @@ This is intended to be implemented using Copilot CLI custom agents and a thin or
 
 ## Interfaces
 
-- Entry (recommended): `dev/harness/daemon.sh` (keep-alive supervisor that starts `dev/harness/director.sh`)
+- Entry (recommended): `dev/scripts/daemon.sh` (keep-alive supervisor that starts `dev/harness/director.sh`)
 - Entry (direct): `dev/harness/director.sh` (heartbeat daemon)
 - Manual cycle: `dev/harness/run-cycle.sh <issue> <branch> <base_branch>`
 - Artifact output: `dev/audits/<audit_id>/`
