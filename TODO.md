@@ -135,9 +135,9 @@ Run `scripts/setup.sh` to automate these, or do them manually:
 ### 0.3 — Directory Structure & Build Scaffold
 
 - [ ] Create `app/` hierarchy: `src/core/`, `src/cli/`, `src/daemon/`, `src/ui/`, `src/copilot/`, `include/`, `tests/`, `config/`, `scripts/`
-- [ ] Create `dev/` hierarchy: `agents/`, `harness/`, `plans/`, `prompts/`, `scripts/`, `audits/`, `mcp/`
+- [ ] Create `dev/` hierarchy: `plans/`, `prompts/`, `audits/`, `mcp/`
 - [ ] Create `.github/agents/` for Copilot CLI repo-level agent profiles
-- [ ] Create `dev/harness/log.sh` — shared logging functions for all bash scripts
+- [ ] Create `scripts/harness/log.sh` — shared logging functions for all harness bash scripts
 - [ ] Create `.gitignore`:
   ```
   build/
@@ -228,7 +228,7 @@ These scripts are what transform Copilot CLI from a manual tool into an
 autonomous coding agent. Without them, you have Claude Code with no loop.
 With them, you have a self-driving development daemon.
 
-- [ ] Write `dev/harness/worktree.sh` — Worktree lifecycle helpers:
+- [ ] Write `scripts/harness/worktree.sh` — Worktree lifecycle helpers:
   - [ ] `create <branch>` — `git worktree add ../Review-Cat-${branch} -b ${branch}`
   - [ ] `teardown <worktree_dir>` — `git worktree remove --force`
   - [ ] `list` — `git worktree list --porcelain`
@@ -238,7 +238,7 @@ With them, you have a self-driving development daemon.
     - One **shared** dev harness Docker image tag
     - One **container per worker**
     - One **worktree per container**, bind-mounted as the container workspace
-- [ ] Write `dev/harness/run-cycle.sh` — Single task cycle (the "Claude Code session"):
+- [ ] Write `scripts/harness/run-cycle.sh` — Single task cycle (the "Claude Code session"):
   - [ ] Accept args: `<issue_number> <branch_name> [base_branch]`
   - [ ] `cd` into the worktree for this branch
   - [ ] Docker-first execution (recommended): run `run-cycle.sh` inside a worker container with the worktree mounted at a fixed path (e.g., `/workspace`)
@@ -267,7 +267,7 @@ With them, you have a self-driving development daemon.
     ```
   - [ ] Invoke code-review agent on the PR
   - [ ] Record audit bundle
-- [ ] Write `dev/harness/review-self.sh` — Self-review (creates work for the loop):
+- [ ] Write `scripts/harness/review-self.sh` — Self-review (creates work for the loop):
   - [ ] Generate diff: `git diff HEAD~5..HEAD` (or full tree on first run)
   - [ ] For each persona (security, performance, architecture, testing, docs):
     ```bash
@@ -279,7 +279,7 @@ With them, you have a self-driving development daemon.
   - [ ] Filter findings: only `critical` and `high` severity
   - [ ] Deduplicate: compare titles against existing open issues (`gh issue list`)
   - [ ] Create GitHub Issues for new findings via MCP with labels
-- [ ] Write `dev/harness/monitor-workers.sh` — Worker completion check:
+- [ ] Write `scripts/harness/monitor-workers.sh` — Worker completion check:
   - [ ] List active worktrees
   - [ ] For each: check if agent process is still running
   - [ ] Track worker container state + heartbeat TTL (via agent bus + docker state)
@@ -289,7 +289,7 @@ With them, you have a self-driving development daemon.
   - [ ] For passing workers: merge PR **into active release branch** via MCP, teardown worktree
   - [ ] Close issues only when the **release PR** (feature/* → main) is merged (or close explicitly as part of release finalization)
   - [ ] For failing workers: increment retry counter, re-dispatch or label `agent-blocked`
-- [ ] Write `dev/harness/record-audit.sh` — Audit recording:
+- [ ] Write `scripts/harness/record-audit.sh` — Audit recording:
   - [ ] Collect: ledger files, build.log, test.log, `git diff`
   - [ ] Write audit summary JSON
   - [ ] Update `dev/audits/index.json`
@@ -306,7 +306,7 @@ interruptions (container restarts, transient failures) and coordinating
   - [ ] Used to detect first-run vs resume after restart
 
 - [ ] Write `scripts/daemon.sh` — Supervisor daemon:
-  - [ ] Starts `dev/harness/director.sh` as a child process
+  - [ ] Starts `scripts/harness/director.sh` as a child process
   - [ ] Keep-alive: if Director exits unexpectedly, restart with backoff
   - [ ] Writes/updates `STATE.json` with last-seen heartbeat + current release context
   - [ ] Upgrade handling:
@@ -315,9 +315,9 @@ interruptions (container restarts, transient failures) and coordinating
     - [ ] If a worker is mid-edit and safe to discard, it may `git reset --hard HEAD` and restart
     - [ ] If a worker is mid-commit/rebase (unsafe), it finishes the critical section first
 
-- [ ] Write `dev/harness/director.sh` — The main daemon:
+- [ ] Write `scripts/harness/director.sh` — The main daemon:
   - [ ] Load config from `config/dev.toml` (intervals, max workers, watchdogs, agent-bus ports)
-  - [ ] PID file: write `$$` to `dev/harness/director.pid`, check on startup
+  - [ ] PID file: write `$$` to `dev/audits/director.pid`, check on startup
   - [ ] Trap `SIGTERM`/`SIGINT` for graceful shutdown (teardown all worktrees)
   - [ ] On startup, read/create `STATE.json`:
     - [ ] Determine if this is first run vs resume
@@ -329,22 +329,22 @@ interruptions (container restarts, transient failures) and coordinating
        - Store the release id/branch/PR in `STATE.json`
     2. Scan open issues labeled `agent-task` via GitHub MCP (gh fallback)
     3. Select a batch of issues for the current release (release plan)
-    4. Count active worktrees via `dev/harness/worktree.sh count`
+    4. Count active worktrees via `scripts/harness/worktree.sh count`
     5. For each available worker slot + unclaimed issue:
        - Claim issue: add `agent-claimed` label, remove `agent-task`
        - Create branch: `agent/${ISSUE}-$(date +%s)`
-       - Create worktree: `dev/harness/worktree.sh create $BRANCH`
+      - Create worktree: `scripts/harness/worktree.sh create $BRANCH`
        - Dispatch: start a worker **container** (shared image tag) that runs:
-         - `dev/harness/run-cycle.sh $ISSUE $BRANCH feature/release-<id>`
+         - `scripts/harness/run-cycle.sh $ISSUE $BRANCH feature/release-<id>`
        - Register worker in swarm state (container id, worktree path, task id)
-    6. Monitor completed workers: `dev/harness/monitor-workers.sh`
+    6. Monitor completed workers: `scripts/harness/monitor-workers.sh`
     7. When all issues in the release plan are merged into `feature/release-<id>`:
        - Invoke **merge agent expert** to merge the release PR into `main`
        - Resolve merge conflicts (if any) using release-cycle context + memories
        - Verify: build/test gates + release tag correctness
        - Broadcast to swarm: "new version published" (agent bus)
     8. If no issues and no PRD tasks and all workers idle:
-       - Run `dev/harness/review-self.sh` (creates new issues → feeds the loop)
+      - Run `scripts/harness/review-self.sh` (creates new issues → feeds the loop)
     9. `sleep $INTERVAL`
   - [ ] Log each heartbeat iteration to `dev/audits/director.log`
 
@@ -377,7 +377,7 @@ interruptions (container restarts, transient failures) and coordinating
   - [ ] Create `dev/plans/prd.json` with initial bootstrap tasks
   - [ ] Create initial GitHub Issues for remaining Phase 0 items
   - [ ] Run `./scripts/build.sh` to verify C++ scaffold compiles
-  - [ ] Run `dev/harness/review-self.sh` to seed first issues
+  - [ ] Run `scripts/harness/review-self.sh` to seed first issues
   - [ ] Print: "Bootstrap complete. Run: ./scripts/daemon.sh"
 
 ### 0.10 — Initial Backlog & First Issues
@@ -410,14 +410,14 @@ system equivalent to running Claude Code in an autonomous loop.
 - [ ] Verify: Merge agent merged the release PR into `main` (or escalated via `agent-blocked` with context)
 - [ ] Verify: Director tore down the worktree after merge
 - [ ] Verify: Audit bundle exists under `dev/audits/` with ledger files
-- [ ] Run `dev/harness/review-self.sh` independently — verify it creates ≥1 issue
+- [ ] Run `scripts/harness/review-self.sh` independently — verify it creates ≥1 issue
 - [ ] Let Director run for 3+ heartbeats — verify the circular loop:
   - Self-review creates issues → agent fixes them → PRs merged → self-review again
 - [ ] **MILESTONE: Director is autonomously coding. Phase 0 complete.**
 
 ## Phase 1: Self-Review Loop (Self-Improvement Begins)
 
-- [ ] Implement complete `dev/harness/review-self.sh`:
+- [ ] Implement complete `scripts/harness/review-self.sh`:
   - [ ] Run all persona agents (security, performance, architecture, testing, docs) on own code
   - [ ] Output findings as structured JSON
   - [ ] Create GitHub Issues for critical/high severity findings
@@ -545,7 +545,7 @@ system equivalent to running Claude Code in an autonomous loop.
 - [ ] Configure GitHub MCP Server for dev agents (documented in `scripts/`)
 - [ ] Security: never log or store tokens; redact sensitive paths in audits
 - [ ] **Logging infrastructure:**
-  - [ ] Dev harness: timestamped log functions in `dev/harness/log.sh`
+  - [ ] Dev harness: timestamped log functions in `scripts/harness/log.sh`
   - [ ] Dev harness: all scripts source `log.sh` for consistent output
   - [ ] Dev harness: Director writes to `dev/audits/director.log`
   - [ ] C++ app: integrate spdlog (console + rotating file sinks)

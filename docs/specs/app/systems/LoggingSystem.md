@@ -8,7 +8,7 @@ application and the bash development harness. It is active from Phase 0 onward
 
 Two implementations coexist:
 
-1. **Bash logging** (`dev/harness/log.sh`) — sourced by all harness scripts.
+1. **Bash logging** (`scripts/harness/log.sh`) — sourced by all harness scripts.
 2. **C++ logging** (`spdlog`) — used by the compiled `reviewcat` binary.
 
 Both share a common log format and never log secrets or tokens.
@@ -25,10 +25,10 @@ Both share a common log format and never log secrets or tokens.
 
 ## Interfaces
 
-### Bash (`dev/harness/log.sh`)
+### Bash (`scripts/harness/log.sh`)
 
 ```bash
-source dev/harness/log.sh
+source scripts/harness/log.sh
 
 log_info  "director" "Heartbeat #42 starting"
 log_warn  "worktree" "Worker slot at capacity (3/3)"

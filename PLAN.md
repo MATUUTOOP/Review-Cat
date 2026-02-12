@@ -273,7 +273,7 @@ built — they operate purely via Copilot CLI, bash, and GitHub MCP:
 
 | Agent | Role | How It Runs |
 |-------|------|-------------|
-| **Director (Agent 0)** | Orchestrator | `scripts/daemon.sh` (recommended) → starts `dev/harness/director.sh` heartbeat loop |
+| **Director (Agent 0)** | Orchestrator | `scripts/daemon.sh` (recommended) → starts `scripts/harness/director.sh` heartbeat loop |
 | **Architect** | Design reviewer | `copilot -p @.github/agents/architect.md "..."` |
 | **Implementer** | Code writer | `copilot -p @.github/agents/implementer.md "..."` in worktree |
 | **Coder** | Fix implementer | `copilot -p @.github/agents/coder.md "..."` in worktree |
@@ -319,7 +319,7 @@ In both cases, the integration is via the **Copilot CLI subprocess** with
 
 ### 5.1. Heartbeat System
 
-Agent 0 is a **bash script** (`dev/harness/director.sh`) that runs in a loop:
+Agent 0 is a **bash script** (`scripts/harness/director.sh`) that runs in a loop:
 
 In the MVP dev harness, the Director operates in **release cycles**:
 
@@ -358,7 +358,7 @@ stored in a gitignored root file `STATE.json` created lazily if missing.
 
 ```bash
 #!/usr/bin/env bash
-# dev/harness/director.sh
+# scripts/harness/director.sh
 
 INTERVAL=${DIRECTOR_INTERVAL:-60}
 MAX_WORKERS=${DIRECTOR_MAX_WORKERS:-3}
@@ -390,17 +390,17 @@ while true; do
 
         # Create worktree and dispatch agent
         BRANCH="agent/${TASK}-$(date +%s)"
-        ./dev/harness/worktree.sh create "$BRANCH"
-        ./dev/harness/run-cycle.sh "$TASK" "$BRANCH" "$RELEASE_BRANCH" &
+        ./scripts/harness/worktree.sh create "$BRANCH"
+        ./scripts/harness/run-cycle.sh "$TASK" "$BRANCH" "$RELEASE_BRANCH" &
         ACTIVE=$((ACTIVE + 1))
     done
 
     # 5. Monitor completed worktrees → merge worker PRs into release branch
-    ./dev/harness/monitor-workers.sh
+    ./scripts/harness/monitor-workers.sh
 
     # 6. Self-review cycle (if no other work)
     if [ -z "$ISSUES" ] && [ -z "$BACKLOG" ]; then
-        ./dev/harness/review-self.sh
+        ./scripts/harness/review-self.sh
     fi
             Authentication for the stdio server is provided via environment variables (never commit secrets).
             See `.env.example` and `docs/specs/dev/ENVIRONMENT.md`.
@@ -427,7 +427,7 @@ Docker image tag), and each worker container is bind-mounted to an isolated
 **Worktree lifecycle:**
 
 ```bash
-# dev/harness/worktree.sh
+# scripts/harness/worktree.sh
 
 create() {
     BRANCH=$1
@@ -456,13 +456,13 @@ and ensures PRs are created when work is complete.
 
 ### 5.3. Agent Cycle Script
 
-`dev/harness/run-cycle.sh` orchestrates role agents for a single task in a
+`scripts/harness/run-cycle.sh` orchestrates role agents for a single task in a
 worktree (typically executed *inside* the worker container with the worktree
 mounted as the container workspace):
 
 ```bash
 #!/usr/bin/env bash
-# dev/harness/run-cycle.sh <task_id> <branch> <base_branch>
+# scripts/harness/run-cycle.sh <task_id> <branch> <base_branch>
 
 TASK=$1
 BRANCH=$2
@@ -508,7 +508,7 @@ if [ $? -eq 0 ]; then
 fi
 
 # 6. Record audit
-./dev/harness/record-audit.sh "$TASK" "$AUDIT_DIR"
+./scripts/harness/record-audit.sh "$TASK" "$AUDIT_DIR"
 ```
 
 ### 5.4. Self-Review Loop (Circular Self-Improvement)
@@ -535,7 +535,7 @@ and repeats indefinitely:
 └────────────────────────────────────────────────────────────┘
 ```
 
-**`dev/harness/review-self.sh`:**
+**`scripts/harness/review-self.sh`:**
 
 ```bash
 #!/usr/bin/env bash
@@ -838,11 +838,11 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
 - Write `scripts/bootstrap.sh` (configure MCP, create initial issues,
   set up labels, verify build).
 - Write `scripts/daemon.sh` (keep-alive supervisor for Agent 0).
-- Write `dev/harness/director.sh` (heartbeat daemon with worktree management).
-- Write `dev/harness/run-cycle.sh` (agent cycle in worktree).
-- Write `dev/harness/worktree.sh` (create/teardown helpers).
-- Write `dev/harness/review-self.sh` (self-review bootstrap).
-- Write `dev/harness/record-audit.sh` (audit recording).
+- Write `scripts/harness/director.sh` (heartbeat daemon with worktree management).
+- Write `scripts/harness/run-cycle.sh` (agent cycle in worktree).
+- Write `scripts/harness/worktree.sh` (create/teardown helpers).
+- Write `scripts/harness/review-self.sh` (self-review bootstrap).
+- Write `scripts/harness/record-audit.sh` (audit recording).
 - Define agent profiles in `.github/agents/`.
 - Set up CMake build system for C++ project.
 - Create `scripts/build.sh`, `scripts/test.sh`, `scripts/clean.sh`.
@@ -851,7 +851,7 @@ When a review finding is promoted to a GitHub Issue, the coding agent:
   create PRs, and merge — end to end.
 
 ### Phase 1: Self-Review Loop (Self-Improvement Begins)
-- Implement `dev/harness/review-self.sh` that runs persona reviews on own code.
+- Implement `scripts/harness/review-self.sh` that runs persona reviews on own code.
 - Implement issue creation from review findings.
 - Implement coding agent that reads issues and creates PRs.
 - Implement Director merge logic (validate → merge → teardown).

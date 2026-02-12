@@ -2,7 +2,7 @@
 
 ## Overview
 
-`OrchestrationFSMSystem` defines finite state machines (FSMs) for the **dev harness Director** (`dev/harness/director.sh`) and **dev harness workers** (`dev/harness/run-cycle.sh`).
+`OrchestrationFSMSystem` defines finite state machines (FSMs) for the **dev harness Director** (`scripts/harness/director.sh`) and **dev harness workers** (`scripts/harness/run-cycle.sh`).
 
 The goal is to make behavior:
 

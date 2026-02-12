@@ -39,7 +39,7 @@ Worktrees are created in the parent directory of the main repository.
 ## Implementation
 
 ```bash
-# dev/harness/worktree.sh
+# scripts/harness/worktree.sh
 
 create() {
     BRANCH=$1
