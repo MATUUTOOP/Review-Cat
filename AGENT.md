@@ -199,7 +199,7 @@ converge on the latest harness/protocol changes.
 
 ### Skills library
 
-A repository-level **skills library** documents reusable automation skills and their contract. See `docs/specs/components/SkillsLibrary.md` for SKILL.md conventions and an initial catalog of recommended skills (build, test-runner, memory-query, worktree-manager, docgen).
+A repository-level **skills library** documents reusable automation skills and their contract. See `docs/specs/dev/components/SkillsLibrary.md` for SKILL.md conventions and an initial catalog of recommended skills (build, test-runner, memory-query, worktree-manager, docgen).
 
 ### Determinism & Reproducibility
 

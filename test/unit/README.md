@@ -8,4 +8,4 @@ Conventions:
 - Prefer small, focused, isolated tests
 - Emit JUnit XML when possible for CI integration
 
-See `docs/specs/components/TestDirectory.md` for cross-repo policies.
+See `docs/specs/dev/components/TestDirectory.md` for cross-repo policies.

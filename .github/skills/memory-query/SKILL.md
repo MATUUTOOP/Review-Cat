@@ -25,5 +25,5 @@ and the `MEMORY.md` focus view.
 - Integration: query over `test/fixtures/replays` with expected matches
 
 **Related Specs / Docs:**
-- `docs/specs/components/SkillsLibrary.md`
+- `docs/specs/dev/components/SkillsLibrary.md`
 - `AGENT.md` (memory agent)

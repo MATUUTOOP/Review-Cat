@@ -64,12 +64,12 @@ contracts, and language-agnostic conventions for test discovery:
 
 The full conventions and CI expectations are specified in:
 
-`docs/specs/components/TestDirectory.md` (new).
+`docs/specs/dev/components/TestDirectory.md` (new).
 
 **Runner contract (proposal):** a small wrapper (`scripts/test.sh`) is
 expected to accept flags `--unit/--integration/--bench/--all` and optional
 `--junit-output` / `--bench-output` arguments. The exact script implementation
-is planned and captured in `docs/specs/components/TestDirectory.md`.
+is planned and captured in `docs/specs/dev/components/TestDirectory.md`.
 
 ## The green gate
 

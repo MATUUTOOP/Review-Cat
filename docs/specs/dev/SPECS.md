@@ -33,6 +33,9 @@ Some systems are used in both dev and runtime contexts. Canonical location is un
 - [`StateFile`](components/StateFile.md)
 - [`EngramDTO`](components/EngramDTO.md)
 - [`EngramCatalogDTO`](components/EngramCatalogDTO.md)
+- [`RepoScaffold`](components/RepoScaffold.md)
+- [`SkillsLibrary`](components/SkillsLibrary.md)
+- [`TestDirectory`](components/TestDirectory.md)
 
 ## Related docs
 

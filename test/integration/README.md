@@ -9,4 +9,4 @@ Conventions:
 - Use `test/fixtures/` for seed data and replays
 - Integration jobs may run less frequently in CI than unit tests
 
-See `docs/specs/components/TestDirectory.md`.
+See `docs/specs/dev/components/TestDirectory.md`.

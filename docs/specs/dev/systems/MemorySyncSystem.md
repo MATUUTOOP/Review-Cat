@@ -124,7 +124,7 @@ The canonical location for the agent bus spec is:
 
 - `docs/specs/dev/systems/AgentBusSystem.md`
 
-Any older references to `docs/specs/systems/AgentBusSystem.md` should be updated.
+Any older references to `docs/specs/dev/systems/AgentBusSystem.md` should be updated.
 
 ## Interfaces
 

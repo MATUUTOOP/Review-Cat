@@ -19,4 +19,4 @@ Builds the repository (default via CMake) and produces an artifact for testing.
 **Testing Plan:**
 - Integration test: run build in a clean environment and verify artifact exists.
 
-**Related:** `docs/specs/components/RepoScaffold.md`
+**Related:** `docs/specs/dev/components/RepoScaffold.md`

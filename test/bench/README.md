@@ -9,4 +9,4 @@ Conventions:
 - Output stable JSON with fields: `name`, `value`, `unit`, `tags`
 - Benchmarks may be scheduled nightly
 
-See `docs/specs/components/TestDirectory.md`.
+See `docs/specs/dev/components/TestDirectory.md`.

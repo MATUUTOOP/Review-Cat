@@ -2,8 +2,6 @@
 
 This index groups specs by **runtime app** concern.
 
-This index groups specs by **runtime app** concern.
-
 ## Components
 
 - [`RunConfig`](components/RunConfig.md)

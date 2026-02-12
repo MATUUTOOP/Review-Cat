@@ -11,4 +11,4 @@ Structure:
 - `fuzz/` — fuzz tests (optional)
 - `fixtures/` — shared fixtures and replay data
 
-See `docs/specs/components/TestDirectory.md` for full conventions and CI expectations.
+See `docs/specs/dev/components/TestDirectory.md` for full conventions and CI expectations.
