@@ -61,19 +61,21 @@ The Director’s validation contract is:
 
 - `./scripts/build.sh` then `./scripts/test.sh`
 
-Until the build scaffold exists, these remain *planned* paths; once implemented, the gate must be:
+These scripts exist in-repo. The gate must be:
 
 - idempotent
 - suitable for container execution
 - fast enough for tight iteration
 
-## CI expectations (future)
+## CI expectations
 
-When CI is added, PRs must be blocked on:
+CI is expected to enforce (at minimum):
 
 - build success
 - unit tests
 - integration tests (where present)
+
+See `.github/workflows/unit-tests.yml`, `.github/workflows/integration-tests.yml`, and `.github/workflows/benchmarks.yml`.
 
 ## Cross-references
 

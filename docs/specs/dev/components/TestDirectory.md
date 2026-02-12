@@ -10,7 +10,7 @@ and run tests deterministically.
 
 1. The canonical test root MUST be `test/`.
 2. The canonical subdirectories SHOULD exist as described below and include `README.md` stubs.
-3. The repo SHOULD provide a wrapper at `scripts/test.sh` supporting the flags described in this spec.
+3. The repo MUST provide a wrapper at `scripts/test.sh` supporting the flags described in this spec.
 
 ## Interfaces
 
@@ -71,7 +71,7 @@ follow normal test semantics (0 for success, non-zero for failure).
 
 - [ ] `test/` exists with the canonical subdir layout and `README.md` files
 - [ ] `docs/specs/dev/TESTING_STRATEGY.md` references this spec and the runner contract
-- [ ] `scripts/test.sh` specification exists in docs (implementation later)
+- [ ] `scripts/test.sh` exists and implements the runner contract
 - [ ] CI job contracts defined (PR/unit gate; integration on-demand/merge; scheduled benchmarks)
 
 ## Test cases

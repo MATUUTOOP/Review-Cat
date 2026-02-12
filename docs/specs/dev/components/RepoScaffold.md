@@ -25,17 +25,17 @@ build/test gate used by the Director and dev harness.
 Each directory MAY be introduced initially as a README placeholder explaining
 what must live there.
 
-## Build/test gate contract (planned)
+## Build/test gate contract
 
-- `scripts/build.sh` should perform an idempotent build (CMake-based)
-- `scripts/test.sh` should accept `--unit/--integration/--bench/--all` flags
-- The Director's validation gate will run: `./scripts/build.sh && ./scripts/test.sh`
+- `scripts/build.sh` performs an idempotent build (CMake-based)
+- `scripts/test.sh` accepts `--unit/--integration/--bench/--all` flags
+- The Director's validation gate runs: `./scripts/build.sh && ./scripts/test.sh`
 
-## Acceptance criteria (docs-level)
+## Acceptance criteria
 
 - [ ] Placeholder directories and README stubs are created
-- [ ] A spec exists documenting the build/test gate contract
-- [ ] Follow-up issues exist for implementing scripts and minimal CMake
+- [ ] `CMakeLists.txt` exists and builds a minimal `reviewcat` CLI stub
+- [ ] `scripts/build.sh`, `scripts/test.sh`, and `scripts/clean.sh` exist and are executable
 
 ## Test cases
 

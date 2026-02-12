@@ -1,0 +1,26 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly, Monday 03:00 UTC
+    - cron: '0 3 * * 1'
+
+jobs:
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build (Release)
+        run: |
+          ./scripts/build.sh --config Release
+      - name: Run benches
+        run: |
+          ./scripts/test.sh --bench --bench-output build/bench.json
+      - name: Upload benchmark artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-json
+          path: build/bench.json
+          if-no-files-found: warn
