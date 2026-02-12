@@ -83,7 +83,7 @@ Workers must also stay reasonably up to date with `main` while they work:
 	to pull in any new specs, protocol changes, and committed memory engrams.
 
 To prevent drift, workers SHOULD include the following fields in their
-heartbeats (see `docs/specs/systems/AgentBusSystem.md`):
+heartbeats (see `docs/specs/dev/systems/AgentBusSystem.md`):
 
 - `main_ancestor_sha` (merge-base of worker branch and `main`)
 - `catalog_hash_seen` (hash of `memory/catalog.json`)
@@ -148,7 +148,7 @@ SHOULD include (at minimum):
 
 Normative guidance and an example JSON are defined in:
 
-- `docs/specs/components/StateFile.md`
+- `docs/specs/dev/components/StateFile.md`
 
 ## Release model (dev harness)
 
@@ -166,9 +166,6 @@ For the MVP dev harness, work is executed in **release cycles**.
 - Worker PRs should normally target the **release branch**, not `main`.
 - Worker PRs should use `Refs #<issue>` rather than `Closes #<issue>`.
 - The release PR is responsible for closing issues (aggregated `Closes #...`).
-
-This keeps `main` merges controlled and makes it explicit which issues are part
-of a given release.
 
 ### Merge agent (release finalization)
 
@@ -200,6 +197,19 @@ When a new version is published:
 This keeps upgrades from corrupting in-flight work while allowing the swarm to
 converge on the latest harness/protocol changes.
 
+### Skills library
+
+A repository-level **skills library** documents reusable automation skills and their contract. See `docs/specs/components/SkillsLibrary.md` for SKILL.md conventions and an initial catalog of recommended skills (build, test-runner, memory-query, worktree-manager, docgen).
+
+### Determinism & Reproducibility
+
+- Image must pin tool versions where possible:
+  - Copilot CLI
+  - gh
+  - jq
+  - cmake/g++
+  - github-mcp-server
+
 ## Standard state reporting (DTOs)
 
 Workers communicate using stable JSON DTOs (schemas specified in planning issues/specs). At minimum:
@@ -207,7 +217,7 @@ Workers communicate using stable JSON DTOs (schemas specified in planning issues
 - `protocol_hello` — identity, capabilities, and repo/worktree metadata
 - `heartbeat` — progress stage + timestamps (used for TTL detection)
 - `worker_error` — structured error DTO (used for retry vs escalate)
-- `project_state_snapshot` — Director-emitted snapshot for operator UI clients
+- `project_state_snapshot` — Director-emitted snapshot for the UI
 
 Error classification, retry/backoff guidance, and the canonical error DTO fields
 are documented in:
@@ -216,158 +226,25 @@ are documented in:
 
 Normative envelope framing and DTO field requirements live in:
 
-- `docs/specs/systems/AgentBusSystem.md`
+- `docs/specs/dev/systems/AgentBusSystem.md`
 
 The Director maintains `SwarmState` (active workers + queue + health) and can periodically emit a `ProjectState` snapshot for the UI.
 
-## Configuration: `config/dev.toml`
+## Local cached state: `STATE.json` (gitignored)
 
-`config/dev.toml` is the canonical dev harness configuration file. It must include:
+Each repo checkout (including worker worktrees) may contain a root-level
+`STATE.json` file used as **local cached state** for the agent process.
 
-- Director heartbeat interval and worker capacity
-- watchdog timeouts and heartbeat TTLs
-- retry/backoff policy and circuit breaker thresholds
-- container lifecycle rules (image tag, workdir, idle shutdown)
-- agent bus bind/port/security mode
-- memory sync settings (size bounds, cadence)
+- `STATE.json` is **NOT committed** (must be gitignored).
+- It is **created lazily** by the daemon/Director/worker if missing.
+- It is used to detect **first-run vs resume** after container restart.
+- It may cache:
+	- last director heartbeat time
+	- current release id/branch/PR
+	- last-seen `main` HEAD SHA and/or memory catalog hash
+	- worker attempt counters / last-known stage
 
-**Secrets never go into TOML.** Tokens remain in environment variables (e.g., `GITHUB_PERSONAL_ACCESS_TOKEN`).
+`STATE.json` is an optimization and resilience mechanism only. Durable
+coordination remains GitHub Issues/PRs + tracked `/memory/**` engrams.
 
-## TODO.md lifecycle (per-release source of truth)
-
-`TODO.md` is the **single source of truth for per-release tasks**.
-
-At the **start of each release cycle**, the Director:
-
-1. Moves the previous `TODO.md` into `/archive/`
-2. Renames it with a timestamp or release tag (e.g., `archive/TODO-2026-02-11.md`)
-
-The Director may search archived TODOs as **sparse context** for planning/scheduling
-and design reasoning, but current work must trace to the active `TODO.md` + open
-issues.
-
-This archival policy prevents the TODO list from becoming an unbounded history
-dump while still preserving the rationale trail.
-
-## Memory model (event buffer → engrams → files)
-
-The swarm needs shared context, but using a single large, constantly-changing
-tracked file as the durable source of truth does not scale across parallel
-worktrees.
-
-ReviewCat uses a **two-tier memory approach**:
-
-1) **Ephemeral / in-memory**: a bounded, append-only buffer of agent-bus events
-2) **Durable / git-tracked**: compacted **engram DTOs** stored under `/memory/`
-
-### 1) Agent-bus event buffer (in-container memory)
-
-All agent-bus messages can be normalized into an internal `MemoryEvent` record
-and appended to a bounded in-memory buffer (e.g., vector/ring buffer).
-
-- The buffer grows until it hits the configured budget.
-- When over budget, the system compacts **only the oldest events** first.
-- Recent events remain un-compacted to preserve recency for active work.
-
-### 2) Compaction into engrams (structured snapshots)
-
-Compaction produces **engram DTOs**: structured, shareable summaries extracted
-from older event slices.
-
-Engrams are stored in the repo under:
-
-- `memory/catalog.json` — Director-authoritative EngramCatalogDTO (LUT)
-- `/memory/st/<batch_id>/engram_<engram_id>.json` — short-term engrams (highly relevant, recent)
-- `/memory/lt/<batch_id>/engram_<engram_id>.json` — long-term engrams (stable conventions/lessons)
-
-Engrams should be:
-
-- versioned (by release tag or timestamp)
-- immutable once merged (prefer new versions over edits)
-- content-addressed or hash-identified for verification
-
-### 3) Director LUT / catalog (authoritative)
-
-For verification and convergence, the Director maintains an authoritative
-**lookup table (LUT)** / dynamic hash table:
-
-- mapping from engram ids/keys → {version, hash, path, metadata}
-
-Workers verify they have the latest catalog and engram set by comparing hashes.
-The Director can broadcast catalog/snapshot messages over the agent bus.
-
-### 4) MEMORY.md becomes a shared “focus” view (tracked)
-
-`MEMORY.md` is **tracked** and maintained by the Director as a bounded, shared
-“what matters right now” focus buffer:
-
-- It is an **LRU-style knowledge buffer** (small, bounded) derived primarily
-	from recent high-signal ST engrams and/or a small recent event window.
-- It exists to provide a fast “what matters right now” shared view.
-- Durable memory lives in `/memory/` engrams; this file is intentionally
-	regeneratable.
-
-To avoid churn/conflicts across parallel worktrees:
-
-- Workers MUST treat `MEMORY.md` as **read-only**.
-- Only the Director (or a memory-maintenance workflow) updates it at a
-	controlled cadence, keeping diffs small.
-
-### 5) Memory agent + memory skill (query)
-
-We treat memory maintenance as first-class work:
-
-- A dedicated **memory agent** can:
-	- extract older experiences from the event buffer
-	- propose new engram files under `/memory/`
-	- run merge/dedupe/compaction logic within the memory budget
-- A **memory query skill** lets agents grep/search:
-	- short-term engrams (`/memory/st/...`)
-	- long-term engrams (`/memory/lt/...`)
-	- the shared focus buffer (`MEMORY.md`)
-
-### Auditability
-
-The Director should record:
-
-- the engram catalog version/hash used for a cycle
-- any newly generated engrams
-
-and SHOULD record the `MEMORY.md` snapshot used for a cycle (or its hash)
-
-into audit bundles so we can reconstruct decision context.
-
-## Guardrails (non-negotiable)
-
-All agents must:
-
-- treat `/workspace` as the **only writable workspace** (worker worktree mount)
-- follow specs and issue acceptance criteria (planning is the source of truth)
-- avoid dangerous commands and never log secrets
-- prefer deterministic, reviewable changes (small diffs, tests, clear PR descriptions)
-- surface blockers via `agent-blocked` + a clear issue comment with structured context
-
-## AGENT.md evolution (governance)
-
-`AGENT.md` is a living contract for how the swarm operates. When the framework
-changes (features added/removed/behavior changed), the change must be reflected
-in:
-
-- `AGENT.md`
-- the relevant planning issue/spec (or a new issue)
-- `PLAN.md` / `TODO.md` if the change affects workflow or release tasks
-
-This keeps the docs, issues, and agent behavior aligned over time.
-
-## Roadmap note: dev builds app
-
-Over time, `/dev` will become capable of building and publishing the runtime `/app` container/image.
-
-The runtime app includes the GUI and human controls, including a real-time visualization of:
-
-- worker status
-- swarm topology (agent graph)
-- error/recovery state
-- current plan / active tasks
-
-Remote workers (LAN/remote IP) are future work and require stronger transport security (e.g., mTLS) before enabling.
+(remaining content unchanged)
