@@ -1,0 +1,73 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "linux64",
+      "displayName": "linux64",
+      "binaryDir": "${sourceDir}/build/linux64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux64-release",
+      "displayName": "linux64 (Release)",
+      "inherits": "linux64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "win64",
+      "displayName": "win64 (toolchain)",
+      "binaryDir": "${sourceDir}/build/win64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/win64-mingw.cmake"
+      }
+    },
+    {
+      "name": "win64-release",
+      "displayName": "win64 (Release toolchain)",
+      "inherits": "win64",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux64",
+      "configurePreset": "linux64"
+    },
+    {
+      "name": "linux64-release",
+      "configurePreset": "linux64-release"
+    },
+    {
+      "name": "win64",
+      "configurePreset": "win64"
+    },
+    {
+      "name": "win64-release",
+      "configurePreset": "win64-release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "linux64-unit",
+      "configurePreset": "linux64",
+      "output": {
+        "outputOnFailure": true
+      },
+      "filter": {
+        "includeLabel": "unit"
+      }
+    }
+  ]
+}

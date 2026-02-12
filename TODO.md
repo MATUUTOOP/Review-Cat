@@ -184,8 +184,8 @@ immediately — even before any real app code exists.
   ```bash
   #!/usr/bin/env bash
   set -e
-  if [ -f build/reviewcat_tests ]; then
-      ./build/reviewcat_tests
+  if [ -f build/linux64/bin/reviewcat_tests ]; then
+    ./build/linux64/bin/reviewcat_tests
   else
       echo "No test binary yet — scaffold pass"
       exit 0
@@ -193,7 +193,7 @@ immediately — even before any real app code exists.
   ```
 - [ ] Write `scripts/clean.sh` — `rm -rf build/`
 - [ ] Verify: `./scripts/build.sh && ./scripts/test.sh` passes (green gate)
-- [ ] Verify: `./build/reviewcat --version` prints `0.0.1-bootstrap`
+- [ ] Verify: `./build/linux64/bin/reviewcat --version` prints `0.0.1-bootstrap`
 
 ### 0.5 — Agent Profiles (the "system prompts" that make agents code like Claude Code)
 

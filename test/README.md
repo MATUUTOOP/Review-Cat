@@ -11,6 +11,6 @@ Structure:
 - `fuzz/` — fuzz tests (optional)
 - `fixtures/` — shared fixtures and replay data
 
-Note: per repo convention, executable shell test scripts live under `scripts/` (for example `scripts/test-suites/`).
+Note: per repo convention, executable test runners live under `scripts/` (for example `scripts/test.sh`).
 
 See `docs/specs/dev/components/TestDirectory.md` for full conventions and CI expectations.

@@ -113,19 +113,19 @@ cd Review-Cat
 ./scripts/build.sh
 
 # Run demo (no auth required)
-./build/reviewcat demo
+./build/linux64/bin/reviewcat demo
 
 # Review local changes
-./build/reviewcat review
+./build/linux64/bin/reviewcat review
 
 # Review a PR
-./build/reviewcat pr 42 --repo OWNER/REPO
+./build/linux64/bin/reviewcat pr 42 --repo OWNER/REPO
 
 # Start daemon mode
-./build/reviewcat watch --interval 60
+./build/linux64/bin/reviewcat watch --interval 60
 
 # Open UI
-./build/reviewcat ui
+./build/linux64/bin/reviewcat ui
 ```
 
 ## Development (Self-Building)
