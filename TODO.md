@@ -1,7 +1,8 @@
 # ReviewCat — TODO
 
 > Actionable task list mapped to **PLAN.md** phases.
-> Each item maps to a spec under `docs/specs/` where applicable.
+> Each item maps to a spec under `docs/dev/specs/` or `docs/app/specs/` where applicable.
+> (Legacy specs may still live physically under `docs/specs/` during migration.)
 > Status: `[ ]` = not started, `[-]` = in progress, `[x]` = done
 >
 > **GitHub Issues** are the primary tracking mechanism for autonomous agents.
@@ -282,7 +283,7 @@ With them, you have a self-driving development daemon.
   - [ ] List active worktrees
   - [ ] For each: check if agent process is still running
   - [ ] Track worker container state + heartbeat TTL (via agent bus + docker state)
-  - [ ] Consume WorkerState heartbeats and structured error reports as defined in `docs/specs/systems/AgentBusSystem.md`
+  - [ ] Consume WorkerState heartbeats and structured error reports as defined in `docs/dev/specs/SPECS.md` (AgentBusSystem)
   - [ ] Apply retry/recovery/escalation policy from `docs/dev/ERROR_HANDLING.md`
   - [ ] For completed workers: validate build/test passed
   - [ ] For passing workers: merge PR **into active release branch** via MCP, teardown worktree
@@ -359,7 +360,8 @@ interruptions (container restarts, transient failures) and coordinating
   - [ ] Check and install `github-mcp-server` binary (download from GitHub Releases)
   - [ ] Verify `copilot` CLI is available
   - [ ] Verify `cmake` and `g++` are available
-  - [ ] Prompt for `GITHUB_PERSONAL_ACCESS_TOKEN` if unset
+  - [ ] Require `GITHUB_PERSONAL_ACCESS_TOKEN` via environment (non-interactive);
+    if unset, exit with a clear message rather than prompting
   - [ ] Run `gh auth login` if not authenticated
   - [ ] All installs are idempotent — safe to re-run
   - [ ] Print summary of installed/verified tools with versions
@@ -405,7 +407,7 @@ system equivalent to running Claude Code in an autonomous loop.
 - [ ] Verify: Agent created a PR via GitHub MCP (PR visible on GitHub)
 - [ ] Verify: Code-review agent posted a review comment on the PR
 - [ ] Verify: Director merged the worker PR into the active release branch
-- [ ] Verify: Merge agent merged the release PR into `main` (or flagged for human review)
+- [ ] Verify: Merge agent merged the release PR into `main` (or escalated via `agent-blocked` with context)
 - [ ] Verify: Director tore down the worktree after merge
 - [ ] Verify: Audit bundle exists under `dev/audits/` with ledger files
 - [ ] Run `dev/harness/review-self.sh` independently — verify it creates ≥1 issue
@@ -521,7 +523,7 @@ system equivalent to running Claude Code in an autonomous loop.
 - [ ] Stats panel — review counts, severity breakdown, persona activity
 - [ ] Audit Log panel — browse past runs, view findings
 - [ ] **Log Viewer panel** — live scrolling log with level filtering (ToolUI text rendering)
-- [ ] Controls panel — start/stop daemon, trigger manual review
+- [ ] Controls panel — start/stop daemon, trigger on-demand review
 - [ ] `reviewcat ui` subcommand
 
 ## Phase 7: Polish & Distribution
