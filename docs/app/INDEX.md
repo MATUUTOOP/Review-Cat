@@ -2,10 +2,6 @@
 
 This section describes the **end-user product**: the ReviewCat CLI/daemon/UI.
 
-## Usage
-
-- Runtime CLI + artifacts: [`USAGE.md`](USAGE.md)
-
 ## Configuration
 
 - App configuration: [`CONFIGURATION.md`](CONFIGURATION.md)
